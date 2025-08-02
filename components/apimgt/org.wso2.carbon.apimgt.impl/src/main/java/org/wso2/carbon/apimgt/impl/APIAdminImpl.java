@@ -80,7 +80,6 @@ import org.wso2.carbon.apimgt.impl.notifier.events.LabelEvent;
 import org.wso2.carbon.apimgt.impl.service.KeyMgtRegistrationService;
 import org.wso2.carbon.apimgt.impl.utils.APINameComparator;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
-import org.wso2.carbon.apimgt.impl.utils.CertificateMgtUtils;
 import org.wso2.carbon.apimgt.impl.utils.ContentSearchResultNameComparator;
 import org.wso2.carbon.apimgt.persistence.APIPersistence;
 import org.wso2.carbon.apimgt.persistence.dto.AdminApiSearchContent;
@@ -142,9 +141,6 @@ public class APIAdminImpl implements APIAdmin {
     private static final Log log = LogFactory.getLog(APIAdminImpl.class);
     protected ApiMgtDAO apiMgtDAO;
     protected LabelsDAO labelsDAO;
-    private CertificateMgtUtils certificateMgtUtils = CertificateMgtUtils.getInstance();
-    private static final String MUTUAL_TLS = "Mutual-TLS";
-    private static final String TENANT_WIDE_CERTIFICATE = "TenantWide";
 
     public APIAdminImpl() {
         apiMgtDAO = ApiMgtDAO.getInstance();
