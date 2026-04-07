@@ -4233,13 +4233,21 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                                        String username) throws APIManagementException {
 
         // Load existing metadata before revocation (revocation may remove/alter it)
-        APIKeyInfo apiKeyInfo = apiKeyMgtDAO.getAPIKey(keyUUId, username);
+        APIKeyInfo apiKeyInfo = apiKeyMgtDAO.getKeyDetailsForAssociation(keyUUId, username);
         if (apiKeyInfo == null || apiKeyInfo.getApiKeyHash() == null) {
             throw new APIMgtResourceNotFoundException("API key not found for UUID: " + keyUUId);
         }
         if (!isAuthorizedApiKeyUser(username, apiKeyInfo.getAuthUser())) {
             throw new APIMgtAuthorizationFailedException(
                     "User is not authorized to regenerate the API key for UUID: " + keyUUId);
+        }
+        if (StringUtils.isNotBlank(apiKeyInfo.getApiUUId())) {
+            throw new APIMgtAuthorizationFailedException(
+                    "API key with UUID: " + keyUUId + " is associated with an API and cannot be regenerated");
+        }
+        if (!StringUtils.equals(apiKeyInfo.getApplicationId(), application.getUUID())) {
+            throw new APIMgtAuthorizationFailedException(
+                    "API key with UUID: " + keyUUId + " is not of application: " + application.getName());
         }
         if (!apiKeyInfo.getKeyType().equals(keyType)) {
             throw new APIMgtAuthorizationFailedException(
@@ -4569,6 +4577,14 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         APIKeyInfo apiKeyInfo = apiKeyMgtDAO.getKeyDetailsForAssociation(keyUUId, username);
         if (apiKeyInfo == null || apiKeyInfo.getApiKeyHash() == null) {
             throw new APIMgtResourceNotFoundException("API key not found for UUID: " + keyUUId);
+        }
+        if (StringUtils.isBlank(apiKeyInfo.getApplicationId())
+                || !StringUtils.equals(apiKeyInfo.getApplicationId(), application.getUUID())
+                || StringUtils.isBlank(apiKeyInfo.getApiUUId())) {
+            throw new APIManagementException(
+                    "API key association is not available for application UUID: " + application.getUUID()
+                            + " and key UUID: " + keyUUId,
+                    ExceptionCodes.API_KEY_ASSOCIATION_NOT_AVAILABLE);
         }
         if (!isAuthorizedApiKeyUser(username, apiKeyInfo.getAuthUser())) {
             throw new APIMgtAuthorizationFailedException(

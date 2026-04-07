@@ -2126,6 +2126,18 @@
               {% endif %}
           </PlatformGatewayConnectConfiguration>
           {% endif %}
+          <APIKeyNotification>
+              <QueueSize>{{apim.gateway_notification.api_key_notification.queue_size}}</QueueSize>
+              <BatchSize>{{apim.gateway_notification.api_key_notification.batch_size}}</BatchSize>
+              <BatchIntervalMillis>{{apim.gateway_notification.api_key_notification.batch_interval}}</BatchIntervalMillis>
+              <MaxRetryCount>{{apim.gateway_notification.api_key_notification.max_retry_count}}</MaxRetryCount>
+              <RetryDuration>{{apim.gateway_notification.api_key_notification.retry_duration}}</RetryDuration>
+              <RetryProgressionFactor>{{apim.gateway_notification.api_key_notification.retry_progression_factor}}</RetryProgressionFactor>
+              <BatchProcessorMinThread>{{apim.gateway_notification.api_key_notification.batch_processor_min_thread}}</BatchProcessorMinThread>
+              <BatchProcessorMaxThread>{{apim.gateway_notification.api_key_notification.batch_processor_max_thread}}</BatchProcessorMaxThread>
+              <BatchProcessorKeepAlive>{{apim.gateway_notification.api_key_notification.batch_processor_keep_alive}}</BatchProcessorKeepAlive>
+              <BatchProcessorQueueSize>{{apim.gateway_notification.api_key_notification.batch_processor_queue_size}}</BatchProcessorQueueSize>
+          </APIKeyNotification>
       </GatewayNotificationConfiguration>
 
       <!-- SynapseArtifactGenerator thread pool configuration -->
