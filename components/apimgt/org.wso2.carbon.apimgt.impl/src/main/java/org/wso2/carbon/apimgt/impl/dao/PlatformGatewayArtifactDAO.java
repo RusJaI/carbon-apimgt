@@ -31,7 +31,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * DAO for platform gateway deployed artifact storage using a dedicated platform cache table.
@@ -171,7 +173,7 @@ public class PlatformGatewayArtifactDAO {
             try (PreparedStatement ps = connection.prepareStatement(
                     SQLConstants.PlatformGatewayArtifactSQLConstants.UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
                 ps.setBytes(1, artifactBytes);
-                ps.setTimestamp(2, now);
+                ps.setTimestamp(2, now, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                 ps.setString(3, revisionId);
                 ps.setString(4, deploymentId);
                 ps.setString(5, apiId);
@@ -181,7 +183,8 @@ public class PlatformGatewayArtifactDAO {
                     try (PreparedStatement insertPs = connection.prepareStatement(
                             SQLConstants.PlatformGatewayArtifactSQLConstants.INSERT_ARTIFACT_SQL)) {
                         insertPs.setBytes(1, artifactBytes);
-                        insertPs.setTimestamp(2, now);
+                        insertPs.setTimestamp(2, now,
+                                Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                         insertPs.setString(3, apiId);
                         insertPs.setString(4, revisionId);
                         insertPs.setString(5, gatewayEnvUuid);
@@ -192,9 +195,11 @@ public class PlatformGatewayArtifactDAO {
                             throw e;
                         }
                         try (PreparedStatement retryPs = connection.prepareStatement(
-                                SQLConstants.PlatformGatewayArtifactSQLConstants.UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
+                                SQLConstants.PlatformGatewayArtifactSQLConstants
+                                        .UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
                             retryPs.setBytes(1, artifactBytes);
-                            retryPs.setTimestamp(2, now);
+                            retryPs.setTimestamp(2, now,
+                                    Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                             retryPs.setString(3, revisionId);
                             retryPs.setString(4, deploymentId);
                             retryPs.setString(5, apiId);
@@ -306,7 +311,8 @@ public class PlatformGatewayArtifactDAO {
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, gatewayEnvUuid.trim());
             if (since != null) {
-                ps.setTimestamp(2, since);
+                ps.setTimestamp(2, since,
+                        Calendar.getInstance(TimeZone.getTimeZone("UTC")));
             }
             try (ResultSet rs = ps.executeQuery()) {
                 List<DeploymentRow> rows = new ArrayList<>();
