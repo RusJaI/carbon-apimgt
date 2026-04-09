@@ -30,7 +30,7 @@ public class PlatformGatewayConnectConfig {
     private List<String> universalGatewayVersions = new ArrayList<>();
 
     /**
-     * Global Universal Gateway versions (e.g. ["0.9.0", "0.11.0"]).
+     * Global Universal Gateway versions (e.g. ["0.11.0","1.0.0"]).
      */
     public List<String> getUniversalGatewayVersions() {
         if (universalGatewayVersions == null) {
