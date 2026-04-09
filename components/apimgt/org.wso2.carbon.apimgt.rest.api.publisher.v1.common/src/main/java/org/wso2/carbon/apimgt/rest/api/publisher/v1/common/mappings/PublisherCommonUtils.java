@@ -38,7 +38,6 @@ import graphql.schema.idl.errors.SchemaProblem;
 import graphql.schema.validation.SchemaValidationError;
 import graphql.schema.validation.SchemaValidator;
 import io.swagger.v3.parser.ObjectMapperFactory;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -150,14 +149,12 @@ import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -683,25 +680,6 @@ public class PublisherCommonUtils {
 
         encryptEndpointSecurityAWSSecretKey(endpointConfig, cryptoUtil, oldProductionAWSSecretKey,
                 oldSandboxAWSSecretKey, apiDtoToUpdate);
-        // update endpointConfig with the provided custom sequence
-        if (endpointConfig != null) {
-            if (APIConstants.ENDPOINT_TYPE_SEQUENCE.equalsIgnoreCase(
-                    (String) endpointConfig.get(APIConstants.API_ENDPOINT_CONFIG_PROTOCOL_TYPE))) {
-                try {
-                    if (endpointConfig.get("sequence_path") != null) {
-                        String pathToSequence = endpointConfig.get("sequence_path").toString();
-                        String sequence = FileUtils.readFileToString(new File(pathToSequence),
-                                Charset.defaultCharset());
-                        endpointConfig.put("sequence", sequence);
-                        apiDtoToUpdate.setEndpointConfig(endpointConfig);
-                    }
-                } catch (IOException ex) {
-                    throw new APIManagementException(
-                            "Error while reading Custom Sequence of API: " + apiDtoToUpdate.getId(), ex,
-                            ExceptionCodes.ERROR_READING_CUSTOM_SEQUENCE);
-                }
-            }
-        }
 
         // AWS Lambda: secret key encryption while updating the API
         if (apiDtoToUpdate.getEndpointConfig() != null) {
