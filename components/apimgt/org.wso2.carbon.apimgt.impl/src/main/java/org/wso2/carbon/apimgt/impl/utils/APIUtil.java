@@ -11152,7 +11152,7 @@ public final class APIUtil {
      */
     public static void exportCustomBackend(String customBackendFileName, String sequence, String archivePath)
             throws APIImportExportException, IOException, APIManagementException {
-        if (!StringUtils.isEmpty(customBackendFileName) && !customBackendFileName.contains(
+        if (!StringUtils.isEmpty(customBackendFileName) && !customBackendFileName.endsWith(
                 APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML)) {
             customBackendFileName = customBackendFileName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML;
         }

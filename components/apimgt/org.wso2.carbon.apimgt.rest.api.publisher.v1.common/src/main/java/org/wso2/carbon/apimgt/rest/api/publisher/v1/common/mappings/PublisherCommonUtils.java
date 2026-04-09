@@ -377,7 +377,7 @@ public class PublisherCommonUtils {
      */
     public static void updateCustomBackend(API api, APIProvider apiProvider, String endpointType,
             String customBackendContent, String fileName) throws APIManagementException {
-        if (fileName == null) {
+        if (StringUtils.isBlank(fileName)) {
             throw new APIManagementException(
                     "Error when retrieving sequence backend file name of API: " + api.getId().getApiName());
         }

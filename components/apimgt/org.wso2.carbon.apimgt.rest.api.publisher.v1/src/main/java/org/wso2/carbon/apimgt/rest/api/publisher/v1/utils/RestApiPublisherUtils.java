@@ -297,7 +297,7 @@ public class RestApiPublisherUtils {
         boolean preventDeletion = false;
         try {
             tempDir = CommonUtil.createTempDirectory(null);
-            if (!seqName.contains(APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML)) {
+            if (!seqName.endsWith(APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML)) {
                 seqName = seqName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML;
             }
             String safeFileName = Paths.get(seqName).getFileName().toString();
