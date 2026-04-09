@@ -2214,6 +2214,11 @@ public class PublisherCommonUtils {
                 }
             }
 
+            // Validate scope name for restricted prefixes
+            if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
+                throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
+            }
+
             //set display name as empty if it is not provided
             if (StringUtils.isBlank(scope.getName())) {
                 scope.setName(scopeName);

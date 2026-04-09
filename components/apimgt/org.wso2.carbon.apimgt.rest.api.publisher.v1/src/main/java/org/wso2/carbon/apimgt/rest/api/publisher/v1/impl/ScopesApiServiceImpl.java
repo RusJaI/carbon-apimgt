@@ -114,6 +114,10 @@ public class ScopesApiServiceImpl implements ScopesApiService {
                 throw new APIManagementException("Shared scope Display Name cannot be null or empty",
                         ExceptionCodes.SHARED_SCOPE_DISPLAY_NAME_NOT_SPECIFIED);
             }
+            // Validate scope name for restricted prefixes
+            if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
+                throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
+            }
             if (apiProvider.isScopeKeyExist(scopeName, APIUtil.getTenantIdFromTenantDomain(tenantDomain)) ||
                     apiProvider.isScopeKeyExistInKeyManager(scopeName, tenantDomain)) {
                 throw new APIManagementException(ExceptionCodes.from(ExceptionCodes.SCOPE_ALREADY_REGISTERED,
