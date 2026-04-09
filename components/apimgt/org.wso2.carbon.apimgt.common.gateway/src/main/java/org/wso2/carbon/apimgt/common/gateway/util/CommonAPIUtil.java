@@ -131,9 +131,7 @@ public class CommonAPIUtil {
             HttpHost host = new HttpHost(proxyHost, proxyPort, protocol);
             DefaultProxyRoutePlanner routePlanner;
             if (nonProxyHosts.length > 0 || targetProxyHosts.length > 0) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Using ExtendedProxyRoutePlanner with custom proxy routing rules");
-                }
+                log.debug("Using ExtendedProxyRoutePlanner with custom proxy routing rules");
                 routePlanner = new ExtendedProxyRoutePlanner(host, clientConfiguration);
             } else {
                 routePlanner = new DefaultProxyRoutePlanner(host);

@@ -110,8 +110,8 @@ public class CommonAPIUtilTestCase {
         proxyServer.verifyZeroInteractions();
 
         // Given the proxy configuration, checks if the call is successfully routed via the proxy server.
-        HttpClientConfigurationDTO configuration = builder
-                .withConnectionParams(connectionLimit, maximumConnectionsPerRoute, connectionTimeout)
+        HttpClientConfigurationDTO configuration = builder.withConnectionParams(connectionLimit,
+                        maximumConnectionsPerRoute, connectionTimeout)
                 .withProxy(proxyHost, proxyServer.getPort(), proxyUsername, proxyPassword, proxyProtocol, nonProxyHosts,
                         new String[] {}).build();
 
@@ -132,7 +132,7 @@ public class CommonAPIUtilTestCase {
         HttpClientConfigurationDTO configWithWrongProxyCredentials = builder
                 .withConnectionParams(connectionLimit, maximumConnectionsPerRoute, connectionTimeout)
                 .withProxy(proxyHost, proxyServer.getPort(), proxyUsername, "random", proxyProtocol,
-                        nonProxyHosts, new String[] {}).build();
+                        nonProxyHosts, new String[]{}).build();
         HttpClient clientWithWrongProxyCreds = null;
         clientWithWrongProxyCreds = CommonAPIUtil.getHttpClient("https", configWithWrongProxyCredentials, sslContext);
         Assert.assertNotNull(clientWithWrongProxyCreds);

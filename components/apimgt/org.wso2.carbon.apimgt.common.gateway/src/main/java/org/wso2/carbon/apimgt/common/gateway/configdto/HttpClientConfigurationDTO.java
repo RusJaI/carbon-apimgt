@@ -127,8 +127,15 @@ public class HttpClientConfigurationDTO {
             return this;
         }
 
+        @Deprecated
         public Builder withProxy(String proxyHost, int proxyPort, String proxyUsername, String proxyPassword,
-                                 String proxyProtocol, String[] nonProxyHosts, String[] targetProxyHosts) {
+                String proxyProtocol, String[] nonProxyHosts) {
+            return withProxy(proxyHost, proxyPort, proxyUsername, proxyPassword, proxyProtocol, nonProxyHosts,
+                    new String[] {});
+        }
+
+        public Builder withProxy(String proxyHost, int proxyPort, String proxyUsername, String proxyPassword,
+                String proxyProtocol, String[] nonProxyHosts, String[] targetProxyHosts) {
             this.proxyEnabled = true;
             this.proxyHost = proxyHost;
             this.proxyPort = proxyPort;
