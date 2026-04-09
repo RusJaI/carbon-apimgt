@@ -3965,6 +3965,8 @@ public final class APIConstants {
         public static final int DEFAULT_CLEANUP_STARTUP_DELAY = 60;
 
         public static final String PLATFORM_GATEWAY_CONNECT_CONFIGURATION = "PlatformGatewayConnectConfiguration";
+        public static final String UNIVERSAL_GATEWAY_VERSIONS = "UniversalGatewayVersions";
+        public static final String VERSION = "Version";
         public static final String CONNECT_GATEWAYS = "ConnectGateways";
         public static final String CONNECT = "Connect";
         public static final String REGISTRATION_TOKEN = "RegistrationToken";

@@ -252,7 +252,7 @@ public class GatewaysApiServiceImpl implements GatewaysApiService {
         if (StringUtils.isNotBlank(gatewayUrl)) {
             ParsedGatewayUrl parsed = parseGatewayUrl(gatewayUrl);
             if (parsed != null) {
-                return parsed.host;
+                return parsed.host + ":" + parsed.port;
             }
         }
         if (properties != null) {
@@ -261,7 +261,8 @@ public class GatewaysApiServiceImpl implements GatewaysApiService {
                 Object baseUrl = ((Map<?, ?>) controller).get(GATEWAY_PROP_BASE_URL);
                 if (baseUrl instanceof String && StringUtils.isNotBlank((String) baseUrl)) {
                     try {
-                        return new URL((String) baseUrl).getHost();
+                        URL baseUrlObject = new URL((String) baseUrl);
+                        return baseUrlObject.getHost() + ":" + baseUrlObject.getPort();
                     } catch (Exception ignored) {
                         // ignore
                     }

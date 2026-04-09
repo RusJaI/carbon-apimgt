@@ -29,17 +29,22 @@ import java.util.List;
  */
 public class PlatformGatewayConnectConfig {
     private List<ConnectGatewayConfig> connectGateways = new ArrayList<>();
-    private String universalGatewayVersion;
+    private List<String> universalGatewayVersions = new ArrayList<>();
 
     /**
-     * Global default Universal Gateway version (e.g. "0.9.0"). From apim.universal_gateway.version.
+     * Global Universal Gateway versions (e.g. ["0.9.0", "0.11.0"]).
      */
-    public String getUniversalGatewayVersion() {
-        return universalGatewayVersion;
+    public List<String> getUniversalGatewayVersions() {
+        if (universalGatewayVersions == null) {
+            universalGatewayVersions = new ArrayList<>();
+        }
+        return Collections.unmodifiableList(universalGatewayVersions);
     }
 
-    public void setUniversalGatewayVersion(String universalGatewayVersion) {
-        this.universalGatewayVersion = universalGatewayVersion != null ? universalGatewayVersion : "";
+    public void setUniversalGatewayVersions(List<String> universalGatewayVersions) {
+        this.universalGatewayVersions = universalGatewayVersions != null
+                ? new ArrayList<>(universalGatewayVersions)
+                : new ArrayList<>();
     }
 
     /**
