@@ -368,6 +368,24 @@ public class PublisherCommonUtils {
     }
 
     /**
+     * @param api                  API of the Custom Backend
+     * @param apiProvider          API Provider
+     * @param endpointType         Endpoint Type of the Custom Backend (SANDBOX, PRODUCTION)
+     * @param customBackendContent Custom Backend content
+     * @param fileName             fileName of the sequence file
+     * @throws APIManagementException If an error occurs while updating the sequence backend
+     */
+    public static void updateCustomBackend(API api, APIProvider apiProvider, String endpointType,
+            String customBackendContent, String fileName) throws APIManagementException {
+        if (fileName == null) {
+            throw new APIManagementException(
+                    "Error when retrieving sequence backend file name of API: " + api.getId().getApiName());
+        }
+        String customBackendUUID = UUID.randomUUID().toString();
+        apiProvider.updateCustomBackend(api.getUuid(), endpointType, customBackendContent, fileName, customBackendUUID);
+    }
+
+    /**
      * @param api           API of the Custom Backend
      * @param apiProvider   API Provider
      * @param endpointType  Endpoint Type of the Custom Backend (SANDBOX, PRODUCTION)
@@ -375,9 +393,9 @@ public class PublisherCommonUtils {
      * @param contentDecomp Header Content of the Request
      * @throws APIManagementException If an error occurs while updating the API and API definition
      */
+    @Deprecated
     public static void updateCustomBackend(API api, APIProvider apiProvider, String endpointType,
-                                           InputStream customBackend, String contentDecomp)
-            throws APIManagementException {
+            InputStream customBackend, String contentDecomp) throws APIManagementException {
         String fileName = getFileNameFromContentDisposition(contentDecomp);
         if (fileName == null) {
             throw new APIManagementException(
