@@ -148,10 +148,10 @@ public class EnvironmentMappingUtil {
         PlatformGatewayConnectConfig config = ServiceReferenceHolder.getInstance()
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration().getPlatformGatewayConnectConfig();
         if (config == null) {
-            return null;
+            return new ArrayList<>();
         }
         List<String> versions = config.getUniversalGatewayVersions();
-        return versions.isEmpty() ? null : versions;
+        return versions.isEmpty() ? new ArrayList<>() : versions;
     }
 
     /**

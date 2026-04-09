@@ -181,7 +181,6 @@ import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIVersionStringComparator;
 import org.wso2.carbon.apimgt.impl.utils.LifeCycleUtils;
 import org.wso2.carbon.apimgt.impl.utils.MCPUtils;
-import org.wso2.carbon.apimgt.impl.utils.PlatformGatewayDeploymentIdUtil;
 import org.wso2.carbon.apimgt.impl.utils.SimpleContentSearchResultNameComparator;
 import org.wso2.carbon.apimgt.impl.workflow.APIStateWorkflowDTO;
 import org.wso2.carbon.apimgt.impl.workflow.WorkflowConstants;
@@ -2790,9 +2789,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 targets.getPlatformGatewayIds());
         log.info("Undeploy API: " + api.getId().getApiName() + " from " + environmentsToRemove.size()
                 + " environments");
-        gatewayManager.unDeployFromGateway(api, api.getOrganization(), targets.getSynapseLabels(), onDeleteOrRetire,
+        gatewayManager.unDeployFromGateway(api, targets.getSynapseLabels(), onDeleteOrRetire,
                 targets.getPlatformGatewayIds().isEmpty() ? null : targets.getPlatformGatewayIds(),
-                revisionUuidForPlatform, platformGatewayDeploymentIds);
+                platformGatewayDeploymentIds);
         if (log.isDebugEnabled()) {
             log.debug("Removing API: " + api.getId().getApiName() + " from gateways. onDeleteOrRetire: " +
                     onDeleteOrRetire);
@@ -7751,8 +7750,10 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
 
                 try {
                     DeploymentTargets targets = DeploymentModeResolver.resolve(organization, targetEnvironments);
+                    Map<String, String> platformGatewayDeploymentIds = createPlatformGatewayDeploymentIds(apiId,
+                            revisionUUID, targets.getPlatformGatewayIds());
                     if (!targets.getPlatformGatewayIds().isEmpty()) {
-                        warmPlatformRevisionArtifactCache(apiId, revisionUUID, targets.getPlatformGatewayIds());
+                        warmPlatformRevisionArtifactCache(apiId, revisionUUID, platformGatewayDeploymentIds);
                     }
                     GatewayArtifactsMgtDAO.getInstance()
                             .addAndRemovePublishedGatewayLabels(apiId, revisionUUID,
@@ -7761,7 +7762,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                             + " environments");
                     gatewayManager.deployToGateway(api, organization, targets.getSynapseLabels(),
                             targets.getPlatformGatewayIds().isEmpty() ? null : targets.getPlatformGatewayIds(),
-                            revisionUUID);
+                            revisionUUID, platformGatewayDeploymentIds);
                     logPlatformGatewayDeploymentAudit(api, revisionUUID, targets.getPlatformGatewayIds(),
                             targetEnvironments, APIConstants.AuditLogConstants.DEPLOY);
                 } catch (RuntimeException e) {
@@ -8249,20 +8250,38 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         return revisionUUID;
     }
 
-    private void warmPlatformRevisionArtifactCache(String apiId, String revisionUUID, Set<String> gatewayEnvUuids)
-            throws APIManagementException {
-        PlatformGatewayArtifactService artifactService =
-                ServiceReferenceHolder.getInstance().getPlatformGatewayArtifactService();
-        if (artifactService == null || StringUtils.isBlank(apiId) || StringUtils.isBlank(revisionUUID)
+    private Map<String, String> createPlatformGatewayDeploymentIds(String apiId, String revisionUUID,
+                                                                   Set<String> gatewayEnvUuids) {
+        Map<String, String> deploymentIds = new HashMap<>();
+        if (StringUtils.isBlank(apiId) || StringUtils.isBlank(revisionUUID)
                 || gatewayEnvUuids == null || gatewayEnvUuids.isEmpty()) {
-            return;
+            return deploymentIds;
         }
         for (String gatewayEnvUuid : gatewayEnvUuids) {
             if (StringUtils.isBlank(gatewayEnvUuid)) {
                 continue;
             }
-            artifactService.ensureArtifact(apiId, revisionUUID, gatewayEnvUuid,
-                    PlatformGatewayDeploymentIdUtil.generate(apiId, gatewayEnvUuid, revisionUUID));
+            deploymentIds.put(gatewayEnvUuid.trim(), UUID.randomUUID().toString());
+        }
+        return deploymentIds;
+    }
+
+    private void warmPlatformRevisionArtifactCache(String apiId, String revisionUUID,
+                                                   Map<String, String> platformGatewayDeploymentIds)
+            throws APIManagementException {
+        PlatformGatewayArtifactService artifactService =
+                ServiceReferenceHolder.getInstance().getPlatformGatewayArtifactService();
+        if (artifactService == null || StringUtils.isBlank(apiId) || StringUtils.isBlank(revisionUUID)
+                || platformGatewayDeploymentIds == null || platformGatewayDeploymentIds.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : platformGatewayDeploymentIds.entrySet()) {
+            String gatewayEnvUuid = entry.getKey();
+            String deploymentId = entry.getValue();
+            if (StringUtils.isBlank(gatewayEnvUuid) || StringUtils.isBlank(deploymentId)) {
+                continue;
+            }
+            artifactService.ensureArtifact(apiId, revisionUUID, gatewayEnvUuid, deploymentId);
         }
     }
 
