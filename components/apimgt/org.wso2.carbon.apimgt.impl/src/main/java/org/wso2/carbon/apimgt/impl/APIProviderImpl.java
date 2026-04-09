@@ -5542,6 +5542,11 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 apiUUID = apiProductResource.getApiId();
                 api = getAPIbyUUID(apiUUID, tenantDomain);
             }
+            if (APIConstants.API_SUBTYPE_AI_API.equals(api.getSubtype())) {
+                log.warn("Cannot create API Products using AI APIs.");
+                throw new APIManagementException(
+                        ExceptionCodes.from(ExceptionCodes.INVALID_API_FOR_API_PRODUCT, APIConstants.AI.AI));
+            }
             if (api.getSwaggerDefinition() != null) {
                 api.setSwaggerDefinition(getOpenAPIDefinition(apiUUID, tenantDomain));
             }

@@ -3926,6 +3926,11 @@ public class PublisherCommonUtils {
                 api = apiProvider.getAPIbyUUID(apiUUID, productToBeAdded.getOrganization());
                 // if API does not exist, getLightweightAPIByUUID() method throws exception.
             }
+            if (APIConstants.API_SUBTYPE_AI_API.equals(api.getSubtype())) {
+                log.warn("Cannot create API Products using AI APIs.");
+                throw new APIManagementException(
+                        ExceptionCodes.from(ExceptionCodes.INVALID_API_FOR_API_PRODUCT, APIConstants.AI.AI));
+            }
             validateApiLifeCycleForApiProducts(api);
         }
 
@@ -5236,5 +5241,12 @@ public class PublisherCommonUtils {
         options.setPreserveLegacyAsyncApiParser(Boolean.parseBoolean(
                 config.getFirstProperty(APIConstants.API_PUBLISHER_PRESERVE_LEGACY_ASYNC_PARSER)));
         return options;
+    }
+
+    private static void validateApiTypeForApiProducts(API api) throws APIManagementException {
+        if (APIConstants.API_SUBTYPE_AI_API.equals(api.getSubtype())) {
+            throw new APIManagementException(
+                    ExceptionCodes.from(ExceptionCodes.INVALID_API_FOR_API_PRODUCT, APIConstants.AI.AI));
+        }
     }
 }

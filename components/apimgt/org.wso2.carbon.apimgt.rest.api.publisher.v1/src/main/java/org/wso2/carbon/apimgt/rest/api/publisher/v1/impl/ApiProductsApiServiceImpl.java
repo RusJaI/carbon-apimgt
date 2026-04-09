@@ -545,6 +545,9 @@ public class ApiProductsApiServiceImpl implements ApiProductsApiService {
         } catch (APIManagementException e) {
             if (isAuthorizationFailure(e)) {
                 RestApiUtil.handleAuthorizationFailure("User is not authorized to access the API", e, log);
+            } else if (ExceptionCodes.INVALID_API_FOR_API_PRODUCT.getErrorCode()
+                    == e.getErrorHandler().getErrorCode()) {
+                RestApiUtil.handleBadRequest(e.getMessage(), e, log);
             } else {
                 throw e;
             }
@@ -819,6 +822,10 @@ public class ApiProductsApiServiceImpl implements ApiProductsApiService {
             if (e.getMessage().contains(ExceptionCodes.API_CONTEXT_MALFORMED_EXCEPTION.getErrorMessage())) {
                 RestApiUtil.handleBadRequest("Error while adding new API Product. "
                     + e.getMessage().replace("API", "API Product"), e, log);
+            }
+            if (ExceptionCodes.INVALID_API_FOR_API_PRODUCT.getErrorCode()
+                    == e.getErrorHandler().getErrorCode()) {
+                RestApiUtil.handleBadRequest(e.getMessage(), e, log);
             }
             throw e;
         } catch (FaultGatewaysException e) {

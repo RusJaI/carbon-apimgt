@@ -827,6 +827,9 @@ public enum ExceptionCodes implements ErrorHandler {
     INVALID_API_RESOURCES_FOR_API_PRODUCT(903246, "Cannot find API resources for some API Product " +
             "resources.", 404, "Some of the resources in the API Product are not found as API resources. %s"),
 
+    INVALID_API_FOR_API_PRODUCT(903251, "Unsupported API type for API Product", 400,
+            "Resources of %s APIs cannot be used in an API Product"),
+
     INVALID_ADDITIONAL_PROPERTIES_WITH_ERROR(903247, "Invalid additional properties", 400,
             "Invalid additional properties for API: %s:%s Error: %s"),
 
