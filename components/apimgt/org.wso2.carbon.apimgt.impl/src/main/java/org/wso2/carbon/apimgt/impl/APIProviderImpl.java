@@ -132,6 +132,7 @@ import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.impl.gateway.DeploymentModeResolver;
 import org.wso2.carbon.apimgt.impl.gateway.DeploymentModeResolver.DeploymentTargets;
 import org.wso2.carbon.apimgt.impl.dao.GatewayArtifactsMgtDAO;
+import org.wso2.carbon.apimgt.impl.dao.PlatformGatewayArtifactDAO;
 import org.wso2.carbon.apimgt.impl.dao.ServiceCatalogDAO;
 import org.wso2.carbon.apimgt.impl.dto.APIRevisionWorkflowDTO;
 import org.wso2.carbon.apimgt.impl.dto.JwtTokenInfoDTO;
@@ -2772,6 +2773,12 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
     private void removeFromGateway(API api, Set<APIRevisionDeployment> gatewaysToRemove,
                                    Set<String> environmentsToAdd, boolean onDeleteOrRetire)
             throws APIManagementException {
+        removeFromGateway(api, gatewaysToRemove, environmentsToAdd, onDeleteOrRetire, null);
+    }
+
+    private void removeFromGateway(API api, Set<APIRevisionDeployment> gatewaysToRemove,
+                                   Set<String> environmentsToAdd, boolean onDeleteOrRetire,
+                                   String revisionUuidForPlatform) throws APIManagementException {
         Set<String> environmentsToRemove = new HashSet<>();
         for (APIRevisionDeployment apiRevisionDeployment : gatewaysToRemove) {
             environmentsToRemove.add(apiRevisionDeployment.getDeployment());
@@ -2779,14 +2786,38 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         environmentsToRemove.removeAll(environmentsToAdd);
         DeploymentTargets targets = DeploymentModeResolver.resolve(api.getOrganization(), environmentsToRemove);
         APIGatewayManager gatewayManager = APIGatewayManager.getInstance();
+        Map<String, String> platformGatewayDeploymentIds = resolvePlatformGatewayDeploymentIds(api.getUuid(),
+                targets.getPlatformGatewayIds());
         log.info("Undeploy API: " + api.getId().getApiName() + " from " + environmentsToRemove.size()
                 + " environments");
         gatewayManager.unDeployFromGateway(api, api.getOrganization(), targets.getSynapseLabels(), onDeleteOrRetire,
-                targets.getPlatformGatewayIds().isEmpty() ? null : targets.getPlatformGatewayIds());
+                targets.getPlatformGatewayIds().isEmpty() ? null : targets.getPlatformGatewayIds(),
+                revisionUuidForPlatform, platformGatewayDeploymentIds);
         if (log.isDebugEnabled()) {
             log.debug("Removing API: " + api.getId().getApiName() + " from gateways. onDeleteOrRetire: " +
                     onDeleteOrRetire);
         }
+    }
+
+    private Map<String, String> resolvePlatformGatewayDeploymentIds(String apiId, Set<String> platformGatewayIds)
+            throws APIManagementException {
+        Map<String, String> deploymentIds = new HashMap<>();
+        if (StringUtils.isBlank(apiId) || platformGatewayIds == null || platformGatewayIds.isEmpty()) {
+            return deploymentIds;
+        }
+        PlatformGatewayArtifactDAO artifactDAO = PlatformGatewayArtifactDAO.getInstance();
+        String trimmedApiId = apiId.trim();
+        for (String gatewayId : platformGatewayIds) {
+            if (StringUtils.isBlank(gatewayId)) {
+                continue;
+            }
+            String trimmedGatewayId = gatewayId.trim();
+            String deploymentId = artifactDAO.getArtifactDeploymentId(trimmedApiId, trimmedGatewayId);
+            if (StringUtils.isNotBlank(deploymentId)) {
+                deploymentIds.put(trimmedGatewayId, deploymentId.trim());
+            }
+        }
+        return deploymentIds;
     }
 
     public API createNewAPIVersion(String existingApiId, String newVersion, Boolean isDefaultVersion,
@@ -7994,7 +8025,8 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         }
         try {
             DeploymentTargets targets = DeploymentModeResolver.resolve(organization, environmentsToRemove);
-            removeFromGateway(api, new HashSet<>(apiRevisionDeployments), Collections.emptySet(), onDeleteOrRetire);
+            removeFromGateway(api, new HashSet<>(apiRevisionDeployments), Collections.emptySet(), onDeleteOrRetire,
+                    apiRevisionId);
             PlatformGatewayArtifactService artifactService =
                     ServiceReferenceHolder.getInstance().getPlatformGatewayArtifactService();
             if (artifactService != null) {

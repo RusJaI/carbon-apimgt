@@ -136,6 +136,58 @@ public class PlatformGatewayArtifactDAO {
     }
 
     /**
+     * Get cached revision UUID for the stored artifact row for (apiId, gatewayEnvUuid).
+     *
+     * @param apiId API ID (UUID)
+     * @param gatewayEnvUuid gateway environment UUID
+     * @return cached revision UUID or null if not found
+     */
+    public String getArtifactRevisionId(String apiId, String gatewayEnvUuid) throws APIManagementException {
+        if (apiId == null || gatewayEnvUuid == null) {
+            return null;
+        }
+        try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     SQLConstants.PlatformGatewayArtifactSQLConstants.SELECT_ARTIFACT_REVISION_BY_API_AND_GATEWAY_SQL)) {
+            ps.setString(1, apiId.trim());
+            ps.setString(2, gatewayEnvUuid.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("REVISION_ID") : null;
+            }
+        } catch (SQLException e) {
+            log.error("Error getting cached platform artifact revision for API " + apiId + " on gateway "
+                    + gatewayEnvUuid, e);
+            throw new APIManagementException("Error getting cached platform artifact revision", e);
+        }
+    }
+
+    /**
+     * Get persisted deployment ID for the stored artifact row for (apiId, gatewayEnvUuid).
+     *
+     * @param apiId API ID (UUID)
+     * @param gatewayEnvUuid gateway environment UUID
+     * @return deployment ID or null if not found
+     */
+    public String getArtifactDeploymentId(String apiId, String gatewayEnvUuid) throws APIManagementException {
+        if (apiId == null || gatewayEnvUuid == null) {
+            return null;
+        }
+        try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     SQLConstants.PlatformGatewayArtifactSQLConstants.SELECT_ARTIFACT_DEPLOYMENT_BY_API_AND_GATEWAY_SQL)) {
+            ps.setString(1, apiId.trim());
+            ps.setString(2, gatewayEnvUuid.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("DEPLOYMENT_ID") : null;
+            }
+        } catch (SQLException e) {
+            log.error("Error getting cached platform artifact deployment ID for API " + apiId + " on gateway "
+                    + gatewayEnvUuid, e);
+            throw new APIManagementException("Error getting cached platform artifact deployment ID", e);
+        }
+    }
+
+    /**
      * Save or replace platform deployed artifact in the dedicated platform cache table.
      * INSERT or UPDATE one row (API_ID, GATEWAY_ENV_UUID, DEPLOYMENT_ID, REVISION_ID, ARTIFACT).
      *
@@ -278,7 +330,7 @@ public class PlatformGatewayArtifactDAO {
     }
 
     /**
-     * Delete all artifact rows for an API from the dedicated platform cache table (e.g. on API delete).
+     * Delete all artifact rows for an API from the dedicated platform cache table (e.g., on API delete).
      */
     public void deleteAllRevisionArtifactsForApi(String apiId) throws APIManagementException {
         if (apiId == null) {
@@ -320,7 +372,7 @@ public class PlatformGatewayArtifactDAO {
                     rows.add(new DeploymentRow(
                             rs.getString("API_ID"),
                             rs.getString("DEPLOYMENT_ID"),
-                            rs.getTimestamp("TIME_STAMP")));
+                            rs.getTimestamp("TIME_STAMP", Calendar.getInstance(TimeZone.getTimeZone("UTC")))));
                 }
                 return rows;
             }
@@ -377,7 +429,7 @@ public class PlatformGatewayArtifactDAO {
         }
     }
 
-    /** One row from listDeploymentsByGatewayEnvUuid. */
+    /** One row from the listDeploymentsByGatewayEnvUuid. */
     public static class DeploymentRow {
         private final String apiUuid;
         private final String deploymentId;
