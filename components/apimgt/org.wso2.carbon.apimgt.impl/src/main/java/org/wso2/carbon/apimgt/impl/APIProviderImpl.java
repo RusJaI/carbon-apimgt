@@ -8028,18 +8028,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             DeploymentTargets targets = DeploymentModeResolver.resolve(organization, environmentsToRemove);
             removeFromGateway(api, new HashSet<>(apiRevisionDeployments), Collections.emptySet(), onDeleteOrRetire,
                     apiRevisionId);
-            PlatformGatewayArtifactService artifactService =
-                    ServiceReferenceHolder.getInstance().getPlatformGatewayArtifactService();
-            if (artifactService != null) {
-                for (String gatewayEnvUuid : targets.getPlatformGatewayIds()) {
-                    try {
-                        artifactService.deleteArtifactForGateway(apiId, gatewayEnvUuid);
-                    } catch (Exception e) {
-                        log.warn("Failed to delete platform gateway artifact for API " + apiId
-                                + " in gateway environment " + gatewayEnvUuid, e);
-                    }
-                }
-            }
+            deletePlatformArtifactsForTargets(apiId, targets.getPlatformGatewayIds());
             logPlatformGatewayDeploymentAudit(api, apiRevisionId, targets.getPlatformGatewayIds(),
                     environmentsToRemove, APIConstants.AuditLogConstants.UNDEPLOY);
         } catch (RuntimeException e) {
@@ -8050,6 +8039,14 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                             deployment -> environments.contains(deployment.getDeployment()));
                     environmentsToRemove.removeAll(environments);
                     unDeploymentFailures.addAll(environments);
+                }
+                try {
+                    DeploymentTargets successfulTargets = DeploymentModeResolver.resolve(organization,
+                            environmentsToRemove);
+                    deletePlatformArtifactsForTargets(apiId, successfulTargets.getPlatformGatewayIds());
+                } catch (Exception artifactCleanupException) {
+                    log.warn("Failed to clean platform gateway artifacts after partial undeployment for API " + apiId,
+                            artifactCleanupException);
                 }
             } else {
                 throw e;
@@ -8282,6 +8279,28 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 continue;
             }
             artifactService.ensureArtifact(apiId, revisionUUID, gatewayEnvUuid, deploymentId);
+        }
+    }
+
+    private void deletePlatformArtifactsForTargets(String apiId, Set<String> platformGatewayIds) {
+        if (StringUtils.isBlank(apiId) || platformGatewayIds == null || platformGatewayIds.isEmpty()) {
+            return;
+        }
+        PlatformGatewayArtifactService artifactService =
+                ServiceReferenceHolder.getInstance().getPlatformGatewayArtifactService();
+        if (artifactService == null) {
+            return;
+        }
+        for (String gatewayEnvUuid : platformGatewayIds) {
+            if (StringUtils.isBlank(gatewayEnvUuid)) {
+                continue;
+            }
+            try {
+                artifactService.deleteArtifactForGateway(apiId, gatewayEnvUuid);
+            } catch (Exception e) {
+                log.warn("Failed to delete platform gateway artifact for API " + apiId
+                        + " in gateway environment " + gatewayEnvUuid, e);
+            }
         }
     }
 
