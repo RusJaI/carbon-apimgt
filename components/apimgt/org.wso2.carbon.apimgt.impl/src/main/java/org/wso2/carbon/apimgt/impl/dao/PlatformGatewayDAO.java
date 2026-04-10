@@ -30,7 +30,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * DAO for platform gateway tokens (AM_GATEWAY_TOKEN) and instance registration (AM_GW_INSTANCES).
@@ -110,7 +112,7 @@ public class PlatformGatewayDAO {
             ps.setString(1, tokenId);
             ps.setString(2, gatewayId);
             ps.setString(3, tokenHash);
-            ps.setTimestamp(4, createdAt);
+            ps.setTimestamp(4, createdAt, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new APIManagementException("Error inserting platform gateway token", e);
@@ -225,7 +227,7 @@ public class PlatformGatewayDAO {
             throws APIManagementException {
         try (PreparedStatement ps = connection.prepareStatement(
                 SQLConstants.PlatformGatewaySQLConstants.REVOKE_TOKENS_BY_GATEWAY_ID_SQL)) {
-            ps.setTimestamp(1, revokedAt);
+            ps.setTimestamp(1, revokedAt, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
             ps.setString(2, gatewayId);
             ps.executeUpdate();
         } catch (SQLException e) {

@@ -106,7 +106,7 @@ return null;
     }
     private StatusEnum status = StatusEnum.ACTIVE;
     private URI vhost = null;
-    private String universalGatewayVersion = null;
+    private List<String> universalGatewayVersions = new ArrayList<String>();
 
   /**
    **/
@@ -391,21 +391,21 @@ return null;
   }
 
   /**
-   * Universal Gateway version from config (e.g. \&quot;0.11.0\&quot;). Set for deploy targets so UI can show quick-start version; from apim.universal_gateway.version.
+   * Universal Gateway versions from config. Set for deploy targets so UI can show version choices in the quick-start guide.
    **/
-  public EnvironmentDTO universalGatewayVersion(String universalGatewayVersion) {
-    this.universalGatewayVersion = universalGatewayVersion;
+  public EnvironmentDTO universalGatewayVersions(List<String> universalGatewayVersions) {
+    this.universalGatewayVersions = universalGatewayVersions;
     return this;
   }
 
   
-  @ApiModelProperty(example = "0.11.0", value = "Universal Gateway version from config (e.g. \"0.11.0\"). Set for deploy targets so UI can show quick-start version; from apim.universal_gateway.version.")
-  @JsonProperty("universalGatewayVersion")
-  public String getUniversalGatewayVersion() {
-    return universalGatewayVersion;
+  @ApiModelProperty(value = "Universal Gateway versions from config. Set for deploy targets so UI can show version choices in the quick-start guide.")
+  @JsonProperty("universalGatewayVersions")
+  public List<String> getUniversalGatewayVersions() {
+    return universalGatewayVersions;
   }
-  public void setUniversalGatewayVersion(String universalGatewayVersion) {
-    this.universalGatewayVersion = universalGatewayVersion;
+  public void setUniversalGatewayVersions(List<String> universalGatewayVersions) {
+    this.universalGatewayVersions = universalGatewayVersions;
   }
 
 
@@ -434,12 +434,12 @@ return null;
         Objects.equals(permissions, environment.permissions) &&
         Objects.equals(status, environment.status) &&
         Objects.equals(vhost, environment.vhost) &&
-        Objects.equals(universalGatewayVersion, environment.universalGatewayVersion);
+        Objects.equals(universalGatewayVersions, environment.universalGatewayVersions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, name, displayName, provider, type, gatewayType, description, isReadOnly, mode, apiDiscoveryScheduledWindow, vhosts, endpointURIs, additionalProperties, permissions, status, vhost, universalGatewayVersion);
+    return Objects.hash(id, name, displayName, provider, type, gatewayType, description, isReadOnly, mode, apiDiscoveryScheduledWindow, vhosts, endpointURIs, additionalProperties, permissions, status, vhost, universalGatewayVersions);
   }
 
   @Override
@@ -463,7 +463,7 @@ return null;
     sb.append("    permissions: ").append(toIndentedString(permissions)).append("\n");
     sb.append("    status: ").append(toIndentedString(status)).append("\n");
     sb.append("    vhost: ").append(toIndentedString(vhost)).append("\n");
-    sb.append("    universalGatewayVersion: ").append(toIndentedString(universalGatewayVersion)).append("\n");
+    sb.append("    universalGatewayVersions: ").append(toIndentedString(universalGatewayVersions)).append("\n");
     sb.append("}");
     return sb.toString();
   }

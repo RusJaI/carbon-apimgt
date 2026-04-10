@@ -76,7 +76,7 @@ public class EnvironmentMappingUtil {
         envDTO.setAdditionalProperties(fromAdditionalPropertiesToAdditionalPropertiesDTO
                 (env.getAdditionalProperties()));
         envDTO.setPermissions(mapPermissionsToDTO(env.getPermissions()));
-        envDTO.setUniversalGatewayVersion(resolveUniversalGatewayVersion());
+        envDTO.setUniversalGatewayVersions(resolveUniversalGatewayVersions());
         return envDTO;
     }
 
@@ -137,21 +137,21 @@ public class EnvironmentMappingUtil {
         envDTO.setStatus(Boolean.TRUE.equals(gateway.isActive())
                 ? EnvironmentDTO.StatusEnum.ACTIVE
                 : EnvironmentDTO.StatusEnum.INACTIVE);
-        envDTO.setUniversalGatewayVersion(resolveUniversalGatewayVersion());
+        envDTO.setUniversalGatewayVersions(resolveUniversalGatewayVersions());
         return envDTO;
     }
 
     /**
-     * Resolve Universal Gateway version from config (apim.universal_gateway.version in api-manager.xml).
+     * Resolve Universal Gateway versions from config.
      */
-    private static String resolveUniversalGatewayVersion() {
+    private static List<String> resolveUniversalGatewayVersions() {
         PlatformGatewayConnectConfig config = ServiceReferenceHolder.getInstance()
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration().getPlatformGatewayConnectConfig();
         if (config == null) {
-            return null;
+            return new ArrayList<>();
         }
-        String global = config.getUniversalGatewayVersion();
-        return (global != null && !global.isEmpty()) ? global : null;
+        List<String> versions = config.getUniversalGatewayVersions();
+        return versions.isEmpty() ? new ArrayList<>() : versions;
     }
 
     /**

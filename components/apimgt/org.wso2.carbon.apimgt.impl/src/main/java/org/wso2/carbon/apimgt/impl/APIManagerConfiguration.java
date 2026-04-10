@@ -3507,10 +3507,22 @@ public class APIManagerConfiguration {
                 new QName(APIConstants.GatewayNotification.PLATFORM_GATEWAY_CONNECT_CONFIGURATION));
         if (pgConnectElem != null) {
             List<org.wso2.carbon.apimgt.impl.dto.ConnectGatewayConfig> connectGateways = new ArrayList<>();
-            OMElement globalVersionEl = pgConnectElem.getFirstChildWithName(new QName("UniversalGatewayVersion"));
-            if (globalVersionEl != null && globalVersionEl.getText() != null
-                    && !globalVersionEl.getText().trim().isEmpty()) {
-                platformGatewayConnectConfig.setUniversalGatewayVersion(globalVersionEl.getText().trim());
+            List<String> universalGatewayVersions = new ArrayList<>();
+            OMElement universalGatewayVersionsEl = pgConnectElem.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.UNIVERSAL_GATEWAY_VERSIONS));
+            if (universalGatewayVersionsEl != null) {
+                Iterator<?> versionIterator = universalGatewayVersionsEl.getChildrenWithName(
+                        new QName(APIConstants.GatewayNotification.VERSION));
+                while (versionIterator != null && versionIterator.hasNext()) {
+                    OMElement versionElement = (OMElement) versionIterator.next();
+                    if (versionElement != null && versionElement.getText() != null
+                            && !versionElement.getText().trim().isEmpty()) {
+                        universalGatewayVersions.add(versionElement.getText().trim());
+                    }
+                }
+            }
+            if (!universalGatewayVersions.isEmpty()) {
+                platformGatewayConnectConfig.setUniversalGatewayVersions(universalGatewayVersions);
             }
             OMElement connectGatewaysElem = pgConnectElem.getFirstChildWithName(
                     new QName(APIConstants.GatewayNotification.CONNECT_GATEWAYS));

@@ -5457,6 +5457,14 @@ public class SQLConstants {
         public static final String SELECT_ARTIFACT_BY_API_AND_GATEWAY_SQL =
                 "SELECT ARTIFACT FROM " + PLATFORM_GATEWAY_ARTIFACT_CACHE_TABLE
                         + " WHERE API_ID = ? AND GATEWAY_ENV_UUID = ?";
+        /** Get cached revision UUID for a platform deployed artifact row. */
+        public static final String SELECT_ARTIFACT_REVISION_BY_API_AND_GATEWAY_SQL =
+                "SELECT REVISION_ID FROM " + PLATFORM_GATEWAY_ARTIFACT_CACHE_TABLE
+                        + " WHERE API_ID = ? AND GATEWAY_ENV_UUID = ?";
+        /** Get persisted deployment ID for a platform deployed artifact row. */
+        public static final String SELECT_ARTIFACT_DEPLOYMENT_BY_API_AND_GATEWAY_SQL =
+                "SELECT DEPLOYMENT_ID FROM " + PLATFORM_GATEWAY_ARTIFACT_CACHE_TABLE
+                        + " WHERE API_ID = ? AND GATEWAY_ENV_UUID = ?";
         public static final String UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL =
                 "UPDATE " + PLATFORM_GATEWAY_ARTIFACT_CACHE_TABLE
                         + " SET ARTIFACT = ?, TIME_STAMP = ?, REVISION_ID = ?, DEPLOYMENT_ID = ? "

@@ -2098,10 +2098,14 @@
               <ExpireTimeSeconds>{{apim.gateway_notification.cleanup.expiry_time}}</ExpireTimeSeconds>
               <DataRetentionPeriodSeconds>{{apim.gateway_notification.cleanup.data_retention_period}}</DataRetentionPeriodSeconds>
           </GatewayCleanup>
-          {% if (apim.universal_gateway.version is defined and apim.universal_gateway.version) or (apim.universal_gateway.connect is defined and apim.universal_gateway.connect | length > 0) %}
+          {% if (apim.universal_gateway.versions is defined and apim.universal_gateway.versions | length > 0) or (apim.universal_gateway.connect is defined and apim.universal_gateway.connect | length > 0) %}
           <PlatformGatewayConnectConfiguration>
-              {% if apim.universal_gateway.version is defined and apim.universal_gateway.version %}
-              <UniversalGatewayVersion>{{ apim.universal_gateway.version }}</UniversalGatewayVersion>
+              {% if apim.universal_gateway.versions is defined and apim.universal_gateway.versions | length > 0 %}
+              <UniversalGatewayVersions>
+              {% for version in apim.universal_gateway.versions %}
+                  <Version>{{ version }}</Version>
+              {% endfor %}
+              </UniversalGatewayVersions>
               {% endif %}
               {% if apim.universal_gateway.connect is defined and apim.universal_gateway.connect | length > 0 %}
               <ConnectGateways>

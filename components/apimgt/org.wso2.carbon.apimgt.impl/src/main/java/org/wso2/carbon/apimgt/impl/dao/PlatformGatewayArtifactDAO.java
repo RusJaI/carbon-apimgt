@@ -31,7 +31,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * DAO for platform gateway deployed artifact storage using a dedicated platform cache table.
@@ -134,6 +136,58 @@ public class PlatformGatewayArtifactDAO {
     }
 
     /**
+     * Get cached revision UUID for the stored artifact row for (apiId, gatewayEnvUuid).
+     *
+     * @param apiId API ID (UUID)
+     * @param gatewayEnvUuid gateway environment UUID
+     * @return cached revision UUID or null if not found
+     */
+    public String getArtifactRevisionId(String apiId, String gatewayEnvUuid) throws APIManagementException {
+        if (apiId == null || gatewayEnvUuid == null) {
+            return null;
+        }
+        try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     SQLConstants.PlatformGatewayArtifactSQLConstants.SELECT_ARTIFACT_REVISION_BY_API_AND_GATEWAY_SQL)) {
+            ps.setString(1, apiId.trim());
+            ps.setString(2, gatewayEnvUuid.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("REVISION_ID") : null;
+            }
+        } catch (SQLException e) {
+            log.error("Error getting cached platform artifact revision for API " + apiId + " on gateway "
+                    + gatewayEnvUuid, e);
+            throw new APIManagementException("Error getting cached platform artifact revision", e);
+        }
+    }
+
+    /**
+     * Get persisted deployment ID for the stored artifact row for (apiId, gatewayEnvUuid).
+     *
+     * @param apiId API ID (UUID)
+     * @param gatewayEnvUuid gateway environment UUID
+     * @return deployment ID or null if not found
+     */
+    public String getArtifactDeploymentId(String apiId, String gatewayEnvUuid) throws APIManagementException {
+        if (apiId == null || gatewayEnvUuid == null) {
+            return null;
+        }
+        try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     SQLConstants.PlatformGatewayArtifactSQLConstants.SELECT_ARTIFACT_DEPLOYMENT_BY_API_AND_GATEWAY_SQL)) {
+            ps.setString(1, apiId.trim());
+            ps.setString(2, gatewayEnvUuid.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("DEPLOYMENT_ID") : null;
+            }
+        } catch (SQLException e) {
+            log.error("Error getting cached platform artifact deployment ID for API " + apiId + " on gateway "
+                    + gatewayEnvUuid, e);
+            throw new APIManagementException("Error getting cached platform artifact deployment ID", e);
+        }
+    }
+
+    /**
      * Save or replace platform deployed artifact in the dedicated platform cache table.
      * INSERT or UPDATE one row (API_ID, GATEWAY_ENV_UUID, DEPLOYMENT_ID, REVISION_ID, ARTIFACT).
      *
@@ -171,7 +225,7 @@ public class PlatformGatewayArtifactDAO {
             try (PreparedStatement ps = connection.prepareStatement(
                     SQLConstants.PlatformGatewayArtifactSQLConstants.UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
                 ps.setBytes(1, artifactBytes);
-                ps.setTimestamp(2, now);
+                ps.setTimestamp(2, now, Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                 ps.setString(3, revisionId);
                 ps.setString(4, deploymentId);
                 ps.setString(5, apiId);
@@ -181,7 +235,8 @@ public class PlatformGatewayArtifactDAO {
                     try (PreparedStatement insertPs = connection.prepareStatement(
                             SQLConstants.PlatformGatewayArtifactSQLConstants.INSERT_ARTIFACT_SQL)) {
                         insertPs.setBytes(1, artifactBytes);
-                        insertPs.setTimestamp(2, now);
+                        insertPs.setTimestamp(2, now,
+                                Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                         insertPs.setString(3, apiId);
                         insertPs.setString(4, revisionId);
                         insertPs.setString(5, gatewayEnvUuid);
@@ -192,9 +247,11 @@ public class PlatformGatewayArtifactDAO {
                             throw e;
                         }
                         try (PreparedStatement retryPs = connection.prepareStatement(
-                                SQLConstants.PlatformGatewayArtifactSQLConstants.UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
+                                SQLConstants.PlatformGatewayArtifactSQLConstants
+                                        .UPDATE_ARTIFACT_BY_API_AND_GATEWAY_SQL)) {
                             retryPs.setBytes(1, artifactBytes);
-                            retryPs.setTimestamp(2, now);
+                            retryPs.setTimestamp(2, now,
+                                    Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                             retryPs.setString(3, revisionId);
                             retryPs.setString(4, deploymentId);
                             retryPs.setString(5, apiId);
@@ -273,7 +330,7 @@ public class PlatformGatewayArtifactDAO {
     }
 
     /**
-     * Delete all artifact rows for an API from the dedicated platform cache table (e.g. on API delete).
+     * Delete all artifact rows for an API from the dedicated platform cache table (e.g., on API delete).
      */
     public void deleteAllRevisionArtifactsForApi(String apiId) throws APIManagementException {
         if (apiId == null) {
@@ -306,7 +363,8 @@ public class PlatformGatewayArtifactDAO {
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, gatewayEnvUuid.trim());
             if (since != null) {
-                ps.setTimestamp(2, since);
+                ps.setTimestamp(2, since,
+                        Calendar.getInstance(TimeZone.getTimeZone("UTC")));
             }
             try (ResultSet rs = ps.executeQuery()) {
                 List<DeploymentRow> rows = new ArrayList<>();
@@ -314,7 +372,7 @@ public class PlatformGatewayArtifactDAO {
                     rows.add(new DeploymentRow(
                             rs.getString("API_ID"),
                             rs.getString("DEPLOYMENT_ID"),
-                            rs.getTimestamp("TIME_STAMP")));
+                            rs.getTimestamp("TIME_STAMP", Calendar.getInstance(TimeZone.getTimeZone("UTC")))));
                 }
                 return rows;
             }
@@ -371,7 +429,7 @@ public class PlatformGatewayArtifactDAO {
         }
     }
 
-    /** One row from listDeploymentsByGatewayEnvUuid. */
+    /** One row from the listDeploymentsByGatewayEnvUuid. */
     public static class DeploymentRow {
         private final String apiUuid;
         private final String deploymentId;
