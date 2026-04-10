@@ -2216,7 +2216,7 @@ public class PublisherCommonUtils {
 
             // Validate scope name for restricted prefixes
             if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
-                log.warn("Scope validation failed: scope name '{}' contains restricted prefix "+ scopeName);
+                log.error("Invalid scope name with restricted prefix: " + scopeName);
                 throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
             }
 

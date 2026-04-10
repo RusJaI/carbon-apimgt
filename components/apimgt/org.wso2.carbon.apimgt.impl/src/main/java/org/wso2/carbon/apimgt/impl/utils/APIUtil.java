@@ -12338,9 +12338,12 @@ public final class APIUtil {
         if (log.isDebugEnabled()) {
             log.debug("Checking if scope has restricted prefix: " + scopeName);
         }
-
-        return scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM)
+        boolean hasRestrictedPrefix = scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM)
                 || scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM_ANALYTICS)
                 || scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_SERVICE_CATALOG);
+        if (hasRestrictedPrefix && log.isDebugEnabled()) {
+            log.debug("Scope has restricted prefix: " + scopeName);
+        }
+        return hasRestrictedPrefix;
     }
 }

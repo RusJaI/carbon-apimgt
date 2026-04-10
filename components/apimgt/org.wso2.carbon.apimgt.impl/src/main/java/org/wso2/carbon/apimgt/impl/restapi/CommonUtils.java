@@ -141,7 +141,7 @@ public class CommonUtils {
 
             // Validate scope name for restricted prefixes
             if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
-                log.error("Invalid scope name with restricted prefix: " + scopeName);
+                log.error("Invalid scope name with restricted prefix: " + scopeName + " for API: " + api.getId().getApiName());
                 throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
             }
 

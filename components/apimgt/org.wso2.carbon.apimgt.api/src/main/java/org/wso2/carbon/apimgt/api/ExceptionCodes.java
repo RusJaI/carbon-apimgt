@@ -427,7 +427,7 @@ public enum ExceptionCodes implements ErrorHandler {
     SCOPE_VALIDATION_FAILED(900986, "Scope validation failed", 412, "Scope validation failed"),
     SHARED_SCOPE_DISPLAY_NAME_NOT_SPECIFIED(900987, "Shared Scope display name not specified", 400,
             "Shared Scope display name not specified"),
-    INVALID_SCOPE_NAME(901001, "Invalid Scope name", 400, "Scope name contains invalid characters"),
+    INVALID_SCOPE_NAME(901004, "Invalid Scope name", 400, "Invalid Scope name"),
     BLOCK_CONDITION_RETRIEVE_PARAMS_EXCEPTION(900254, "Block conditions retrieval error", 400,
             "Provided query parameters are not valid"),
     BLOCK_CONDITION_RETRIEVE_FAILED(900255, "Failed to get Block conditions", 500,
