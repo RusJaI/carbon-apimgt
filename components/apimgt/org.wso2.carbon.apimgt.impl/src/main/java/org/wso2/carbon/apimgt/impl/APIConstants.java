@@ -3444,6 +3444,7 @@ public final class APIConstants {
         public static final String USAGE_TYPE = "usage_type";
         public static final String INFO_TYPE = "info_type";
         public static final String TOKEN_REVOCATION_EVENT = "token_revocation";
+        public static final String TOKEN_REVOCATION_BATCH_EVENT = "token_revocation_batch";
         public static final String API_KEY_USAGE_EVENT = "api_key_usage";
         public static final String API_KEY_INFO_EVENT = "api_key_info";
         public static final String CONSUMER_APP_REVOCATION_EVENT
@@ -3465,12 +3466,14 @@ public final class APIConstants {
         public static final String EXPIRES_AT = "expiresAt";
         public static final String STATUS = "status";
         public static final String EVENT_ID = "eventId";
+        public static final String EVENT_TYPE = "eventType";
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenant_domain";
         public static final String ORG_ID = "org_id";
         public static final String APPLICATION_TOKEN_TYPE_OAUTH2 = "Default";
         public static final String EXPIRY_TIME = "expiryTime";
         public static final String REVOCATION_TIME = "revocationTime";
+        public static final String REVOKED_TOKENS_LIST = "revokedTokensList";
         public static final String LAST_USED_TIME = "lastUsedTime";
         public static final String ORGANIZATION = "organization";
         public static final String STREAM_ID = "streamId";
@@ -3478,7 +3481,6 @@ public final class APIConstants {
         public static final String ENTITY_TYPE = "entityType";
         public static final String ENTITY_TYPE_CLIENT_ID = "CLIENT_ID";
         public static final String ENTITY_TYPE_USER_ID = "USER_ID";
-        public static final String EVENT_TYPE = "eventType";
     }
 
     //Constants related to user password
