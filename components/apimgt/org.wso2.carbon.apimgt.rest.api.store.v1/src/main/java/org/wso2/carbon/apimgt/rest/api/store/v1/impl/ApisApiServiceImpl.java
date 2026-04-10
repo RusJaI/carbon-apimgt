@@ -633,8 +633,8 @@ public class ApisApiServiceImpl implements ApisApiService {
         String keyUUID = body.getKeyUUID();
         if (!StringUtils.isEmpty(keyUUID)) {
             try {
-                APIConsumer apiConsumer = APIManagerFactory.getInstance().getAPIConsumer(username);
                 String organization = RestApiUtil.getValidatedOrganization(messageContext);
+                APIConsumer apiConsumer = RestApiCommonUtil.getConsumer(username, organization);
                 API api = apiConsumer.getLightweightAPIByUUID(apiId, organization);
                 if (api != null) {
                     if (!RestAPIStoreUtils.isUserAccessAllowedForAPIByUUID(apiId, organization)) {
