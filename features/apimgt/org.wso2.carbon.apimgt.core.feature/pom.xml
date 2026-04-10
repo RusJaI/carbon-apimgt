@@ -86,6 +86,10 @@
             <groupId>com.damnhandy.wso2</groupId>
             <artifactId>handy-uri-templates</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.usage.data.exporter</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -243,6 +247,7 @@
                                 <bundleDef>org.apache.httpcomponents.wso2:httpcore</bundleDef>
                                 <bundleDef>org.wso2.carbon.apimgt:org.wso2.carbon.apimgt.spec.parser:${carbon.apimgt.version}</bundleDef>
                                 <bundleDef>com.damnhandy.wso2:handy-uri-templates:${damnhandy.version}</bundleDef>
+                                <bundleDef>org.wso2.carbon:org.wso2.carbon.usage.data.exporter</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
