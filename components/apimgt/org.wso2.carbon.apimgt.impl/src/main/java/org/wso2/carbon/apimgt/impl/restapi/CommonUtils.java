@@ -19,6 +19,8 @@
 package org.wso2.carbon.apimgt.impl.restapi;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIProvider;
 import org.wso2.carbon.apimgt.api.ExceptionCodes;
@@ -37,6 +39,8 @@ import java.util.Set;
  * This class is used to have the functionalities common to all REST API utils
  */
 public class CommonUtils {
+
+    private static final Log log = LogFactory.getLog(CommonUtils.class);
 
     private CommonUtils() {
     }
@@ -131,8 +135,13 @@ public class CommonUtils {
                 }
             }
 
+            if (log.isDebugEnabled()) {
+                log.debug("Validating scope: " + scopeName + " for API: " + api.getId().getApiName());
+            }
+
             // Validate scope name for restricted prefixes
             if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
+                log.error("Invalid scope name with restricted prefix: " + scopeName);
                 throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
             }
 

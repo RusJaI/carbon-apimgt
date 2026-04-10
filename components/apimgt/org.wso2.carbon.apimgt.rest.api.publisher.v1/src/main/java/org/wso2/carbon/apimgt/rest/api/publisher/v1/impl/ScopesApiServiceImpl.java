@@ -116,6 +116,7 @@ public class ScopesApiServiceImpl implements ScopesApiService {
             }
             // Validate scope name for restricted prefixes
             if (APIUtil.hasRestrictedScopePrefix(scopeName)) {
+                log.warn("Attempt to create scope with restricted prefix: " + scopeName);
                 throw new APIManagementException(ExceptionCodes.INVALID_SCOPE_NAME);
             }
             if (apiProvider.isScopeKeyExist(scopeName, APIUtil.getTenantIdFromTenantDomain(tenantDomain)) ||

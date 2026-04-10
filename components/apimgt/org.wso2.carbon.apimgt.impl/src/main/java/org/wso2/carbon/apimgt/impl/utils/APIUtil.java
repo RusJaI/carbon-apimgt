@@ -12335,6 +12335,9 @@ public final class APIUtil {
      * @return true if the scope name starts with a restricted prefix
      */
     public static boolean hasRestrictedScopePrefix(String scopeName) {
+        if (log.isDebugEnabled()) {
+            log.debug("Checking if scope has restricted prefix: " + scopeName);
+        }
 
         return scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM)
                 || scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM_ANALYTICS)
