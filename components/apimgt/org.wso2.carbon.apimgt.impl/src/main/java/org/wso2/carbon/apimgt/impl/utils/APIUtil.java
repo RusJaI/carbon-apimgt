@@ -417,6 +417,10 @@ public final class APIUtil {
 
     private static final ThreadLocal<Boolean> skipSecretMasking = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
+    private static final String RESTRICTED_SCOPE_PREFIX_APIM = "apim:";
+    private static final String RESTRICTED_SCOPE_PREFIX_APIM_ANALYTICS = "apim_analytics:";
+    private static final String RESTRICTED_SCOPE_PREFIX_SERVICE_CATALOG = "service_catalog:";
+
     private APIUtil() {
 
     }
@@ -12412,5 +12416,25 @@ public final class APIUtil {
         } else {
             log.error("Swagger definition is null for API: " + api.getId().getApiName());
         }
+    }
+
+    /**
+     * Checks whether a scope name starts with a restricted/reserved prefix.
+     * This method performs an exact, case-sensitive prefix match to preserve existing behaviour.
+     *
+     * @param scopeName Scope name to check
+     * @return true if the scope name starts with a restricted prefix
+     */
+    public static boolean hasRestrictedScopePrefix(String scopeName) {
+        if (log.isDebugEnabled()) {
+            log.debug("Checking if scope has restricted prefix: " + scopeName);
+        }
+        boolean hasRestrictedPrefix = scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM)
+                || scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_APIM_ANALYTICS)
+                || scopeName.startsWith(RESTRICTED_SCOPE_PREFIX_SERVICE_CATALOG);
+        if (hasRestrictedPrefix && log.isDebugEnabled()) {
+            log.debug("Scope has restricted prefix: " + scopeName);
+        }
+        return hasRestrictedPrefix;
     }
 }
