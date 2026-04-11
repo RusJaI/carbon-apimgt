@@ -41,6 +41,7 @@ import org.wso2.carbon.apimgt.impl.utils.PlatformGatewayTokenUtil;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,12 +65,32 @@ public class PlatformGatewayServiceImpl implements PlatformGatewayService {
     private PlatformGatewayServiceImpl() {
     }
 
+    /**
+     * Gateway environments for an organization plus any stored under the global-tenant scope
+     * ({@link APIConstants.GatewayNotification#WSO2_ALL_TENANTS}), so globally-scoped platform gateways are not
+     * omitted from list/name checks. When {@code organizationId} is already the global scope, only that list is used.
+     */
+    private List<Environment> getEnvironmentsForOrganizationMergedWithGlobal(String organizationId)
+            throws APIManagementException {
+        return getEnvironmentsForOrganizationMergedWithGlobal(new APIAdminImpl(), organizationId);
+    }
+
+    private List<Environment> getEnvironmentsForOrganizationMergedWithGlobal(APIAdminImpl apiAdmin,
+                                                                               String organizationId)
+            throws APIManagementException {
+        List<Environment> merged = new ArrayList<>(apiAdmin.getAllEnvironments(organizationId));
+        if (!APIConstants.GatewayNotification.WSO2_ALL_TENANTS.equals(organizationId)) {
+            merged.addAll(apiAdmin.getAllEnvironments(APIConstants.GatewayNotification.WSO2_ALL_TENANTS));
+        }
+        return merged;
+    }
+
     @Override
     public PlatformGatewayRegistrationResult createGateway(String organizationId, String name, String displayName,
                                                      String description, String vhost, String propertiesJson)
             throws APIManagementException {
         APIAdminImpl apiAdmin = new APIAdminImpl();
-        boolean nameExists = apiAdmin.getAllEnvironments(organizationId).stream()
+        boolean nameExists = getEnvironmentsForOrganizationMergedWithGlobal(apiAdmin, organizationId).stream()
                 .anyMatch(e -> APIConstants.WSO2_API_PLATFORM_GATEWAY.equals(e.getGatewayType())
                         && name.equals(e.getName()));
         if (nameExists) {
@@ -166,7 +187,7 @@ public class PlatformGatewayServiceImpl implements PlatformGatewayService {
     @Override
     public PlatformGateway getGatewayByNameAndOrganization(String name, String organizationId)
             throws APIManagementException {
-        Environment env = new APIAdminImpl().getAllEnvironments(organizationId).stream()
+        Environment env = getEnvironmentsForOrganizationMergedWithGlobal(organizationId).stream()
                 .filter(e -> APIConstants.WSO2_API_PLATFORM_GATEWAY.equals(e.getGatewayType())
                         && name.equals(e.getName()))
                 .findFirst()
@@ -176,7 +197,7 @@ public class PlatformGatewayServiceImpl implements PlatformGatewayService {
 
     @Override
     public List<PlatformGateway> listGatewaysByOrganization(String organizationId) throws APIManagementException {
-        return new APIAdminImpl().getAllEnvironments(organizationId).stream()
+        return getEnvironmentsForOrganizationMergedWithGlobal(organizationId).stream()
                 .filter(e -> APIConstants.WSO2_API_PLATFORM_GATEWAY.equals(e.getGatewayType()))
                 .map(PlatformGatewayServiceImpl::envToApiModel)
                 .collect(Collectors.toList());

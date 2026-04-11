@@ -190,6 +190,9 @@ public class PlatformGatewayArtifactDAO {
     /**
      * Resolve revision UUID (REVISION_ID column) for a gateway environment and deployment id from the artifact cache.
      * Used when the gateway ack omits {@code revisionUuid} but the control plane has already persisted the row.
+     * <p>
+     * DDL defines {@code DEPLOYMENT_ID} as the primary key, so a single deployment id cannot map to multiple rows
+     * on a healthy database; if more than one row is ever returned (corrupt / legacy data), this method fails fast.
      */
     public String getArtifactRevisionIdByGatewayEnvAndDeploymentId(String gatewayEnvUuid, String deploymentId)
             throws APIManagementException {
@@ -202,7 +205,18 @@ public class PlatformGatewayArtifactDAO {
             ps.setString(1, gatewayEnvUuid.trim());
             ps.setString(2, deploymentId.trim());
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getString("REVISION_ID") : null;
+                if (!rs.next()) {
+                    return null;
+                }
+                String revisionId = rs.getString("REVISION_ID");
+                if (rs.next()) {
+                    String msg = "Data integrity error: multiple AM_GW_PLATFORM_API_ARTIFACTS rows for the same "
+                            + "DEPLOYMENT_ID (gatewayEnvUuid=" + gatewayEnvUuid + ", deploymentId=" + deploymentId
+                            + "). DEPLOYMENT_ID is defined as the primary key; inspect and repair duplicate rows.";
+                    log.error(msg);
+                    throw new APIManagementException(msg);
+                }
+                return revisionId;
             }
         } catch (SQLException e) {
             log.error("Error resolving revision from artifact cache for gateway " + gatewayEnvUuid
