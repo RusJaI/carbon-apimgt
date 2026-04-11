@@ -21,7 +21,6 @@ package org.wso2.carbon.apimgt.internal.service.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -51,6 +50,7 @@ import org.wso2.carbon.apimgt.internal.service.dto.DeploymentAcknowledgmentRespo
 import org.wso2.carbon.apimgt.internal.service.dto.UnDeployedAPIRevisionDTO;
 import org.apache.cxf.message.Message;
 import org.wso2.carbon.apimgt.api.PlatformGatewayArtifactService;
+import org.wso2.carbon.apimgt.impl.dao.GatewayManagementDAO;
 import org.wso2.carbon.apimgt.impl.dao.PlatformGatewayDAO;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.PlatformGatewayTokenUtil;
@@ -138,7 +138,7 @@ public class ApisApiServiceImpl implements ApisApiService {
         }
         if (gateway == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Platform gateway token verification failed: invalid or expired api-key");
+                log.debug("Platform gateway deployment notify: invalid or expired api-key for apiId=" + apiId);
             }
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid api-key").build();
         }
@@ -149,8 +149,8 @@ public class ApisApiServiceImpl implements ApisApiService {
             if (apiInfo == null || gateway.organizationId == null
                     || !gateway.organizationId.equals(apiInfo.getOrganization())) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Platform gateway deployment notification rejected: API not found or organization "
-                            + "mismatch for apiId=" + apiId + ", gatewayId=" + gateway.id);
+                    log.debug("Platform gateway deployment notify: API not found or organization mismatch apiId="
+                            + apiId + ", gatewayId=" + gateway.id);
                 }
                 return Response.status(Response.Status.NOT_FOUND).entity("API not found for gateway organization").build();
             }
@@ -159,13 +159,156 @@ public class ApisApiServiceImpl implements ApisApiService {
                     + ", gatewayId=" + gateway.id, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Server error").build();
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Platform gateway deployment notification received: apiId=" + apiId + ", gatewayId=" + gateway.id
-                    + ", deploymentId=" + deploymentId);
+        try {
+            Response persistError =
+                    persistPlatformGatewayDeploymentNotification(apiId, gateway, deploymentId, requestBody);
+            if (persistError != null) {
+                return persistError;
+            }
+        } catch (APIManagementException e) {
+            log.error("Failed to persist platform gateway deployment status for apiId=" + apiId + ", gatewayId="
+                    + gateway.id, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to persist deployment status")
+                    .build();
         }
         DeploymentAcknowledgmentResponseDTO response = new DeploymentAcknowledgmentResponseDTO();
         response.setStatus(DeploymentAcknowledgmentResponseDTO.StatusEnum.RECEIVED);
         return Response.ok().entity(response).build();
+    }
+
+    /**
+     * Records platform gateway deployment outcome in AM_GW_REVISION_DEPLOYMENT (same data path as
+     * {@link org.wso2.carbon.apimgt.internal.service.impl.NotifyApiDeploymentStatusApiServiceImpl}) so Publisher
+     * deployment stats (liveGatewayCount / deployedGatewayCount) update for Universal gateways.
+     */
+    private Response persistPlatformGatewayDeploymentNotification(String apiId, PlatformGatewayDAO.PlatformGateway gateway,
+            String deploymentIdQueryParam, Map<String, Object> requestBody) throws APIManagementException {
+
+        String revisionUuid = resolveRevisionUuidForPlatformNotify(deploymentIdQueryParam, requestBody);
+
+        if (StringUtils.isBlank(revisionUuid)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Platform gateway deployment notify: missing revision/deployment id for apiId=" + apiId
+                        + ", gatewayId=" + gateway.id);
+            }
+            return Response.status(Response.Status.BAD_REQUEST).entity(
+                    "deploymentId query parameter or deploymentId/revisionId in JSON body is required to correlate "
+                            + "gateway deployment with an API revision").build();
+        }
+
+        GatewayManagementDAO dao = GatewayManagementDAO.getInstance();
+        String organization = gateway.organizationId;
+        if (!dao.gatewayExists(gateway.id, organization)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Platform gateway deployment notify: gateway not registered gatewayUuid=" + gateway.id
+                        + ", organization=" + organization);
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity("Gateway instance not registered").build();
+        }
+        if (!dao.apiExists(apiId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Platform gateway deployment notify: api not in AM_API for apiId=" + apiId);
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity("API not found").build();
+        }
+
+        long timeStamp = resolveNotifyTimestampMillis(requestBody);
+        String[] statusAndAction = mapPlatformPayloadToNotifyStatusAndAction(requestBody);
+        String notifyStatus = statusAndAction[0];
+        String action = statusAndAction[1];
+
+        if (dao.deploymentExists(gateway.id, apiId)) {
+            if (dao.isDeploymentTimestampInorder(gateway.id, apiId, timeStamp)) {
+                dao.updateDeployment(gateway.id, apiId, organization, notifyStatus, action, revisionUuid, timeStamp);
+            }
+        } else {
+            dao.insertDeployment(gateway.id, apiId, organization, notifyStatus, action, revisionUuid, timeStamp);
+        }
+        return null;
+    }
+
+    private static String resolveRevisionUuidForPlatformNotify(String deploymentIdQueryParam,
+            Map<String, Object> requestBody) {
+        String revisionUuid = StringUtils.trimToEmpty(deploymentIdQueryParam);
+        if (StringUtils.isNotBlank(revisionUuid)) {
+            return revisionUuid;
+        }
+        if (requestBody == null) {
+            return null;
+        }
+        revisionUuid = StringUtils.trimToEmpty(stringValueFromBody(requestBody, "deploymentId"));
+        if (StringUtils.isNotBlank(revisionUuid)) {
+            return revisionUuid;
+        }
+        revisionUuid = StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionId"));
+        if (StringUtils.isNotBlank(revisionUuid)) {
+            return revisionUuid;
+        }
+        return StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionUuid"));
+    }
+
+    private static String stringValueFromBody(Map<String, Object> body, String key) {
+        Object value = body.get(key);
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private static long resolveNotifyTimestampMillis(Map<String, Object> requestBody) {
+        long fallback = System.currentTimeMillis();
+        if (requestBody == null) {
+            return fallback;
+        }
+        Long fromDeployed = extractEpochMillis(requestBody.get("deployedAt"));
+        if (fromDeployed != null) {
+            return fromDeployed;
+        }
+        Long fromUpdated = extractEpochMillis(requestBody.get("updatedAt"));
+        if (fromUpdated != null) {
+            return fromUpdated;
+        }
+        return fallback;
+    }
+
+    private static Long extractEpochMillis(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Maps API Platform gateway JSON ({@code status} / {@code desiredState}) to AM_GW_REVISION_DEPLOYMENT
+     * STATUS and ACTION (aligned with internal notify-api deployment DTOs).
+     */
+    private static String[] mapPlatformPayloadToNotifyStatusAndAction(Map<String, Object> requestBody) {
+        String desired = "";
+        if (requestBody != null) {
+            desired = StringUtils.defaultString(stringValueFromBody(requestBody, "status"));
+            if (StringUtils.isBlank(desired)) {
+                desired = StringUtils.defaultString(stringValueFromBody(requestBody, "desiredState"));
+            }
+        }
+        String lower = desired.toLowerCase();
+        if (lower.contains("fail") || lower.contains("error")) {
+            return new String[] { APIConstants.GatewayNotification.DEPLOYMENT_STATUS_FAILURE,
+                    APIConstants.AuditLogConstants.DEPLOY };
+        }
+        if (APIConstants.AuditLogConstants.UNDEPLOYED.equalsIgnoreCase(desired.trim())
+                || "undeployed".equals(lower)) {
+            return new String[] { APIConstants.GatewayNotification.DEPLOYMENT_STATUS_SUCCESS,
+                    APIConstants.AuditLogConstants.UNDEPLOY };
+        }
+        return new String[] { APIConstants.GatewayNotification.DEPLOYMENT_STATUS_SUCCESS,
+                APIConstants.AuditLogConstants.DEPLOY };
     }
 
     private Response getApiAsPlatformGatewayZip(String apiId, String organization, MessageContext messageContext)

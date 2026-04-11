@@ -188,6 +188,30 @@ public class PlatformGatewayArtifactDAO {
     }
 
     /**
+     * Resolve revision UUID (REVISION_ID column) for a gateway environment and deployment id from the artifact cache.
+     * Used when the gateway ack omits {@code revisionUuid} but the control plane has already persisted the row.
+     */
+    public String getArtifactRevisionIdByGatewayEnvAndDeploymentId(String gatewayEnvUuid, String deploymentId)
+            throws APIManagementException {
+        if (gatewayEnvUuid == null || deploymentId == null) {
+            return null;
+        }
+        try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection();
+             PreparedStatement ps = connection.prepareStatement(SQLConstants.PlatformGatewayArtifactSQLConstants
+                     .SELECT_ARTIFACT_REVISION_BY_GATEWAY_AND_DEPLOYMENT_SQL)) {
+            ps.setString(1, gatewayEnvUuid.trim());
+            ps.setString(2, deploymentId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("REVISION_ID") : null;
+            }
+        } catch (SQLException e) {
+            log.error("Error resolving revision from artifact cache for gateway " + gatewayEnvUuid
+                    + " deployment " + deploymentId, e);
+            throw new APIManagementException("Error resolving revision from platform artifact cache", e);
+        }
+    }
+
+    /**
      * Save or replace platform deployed artifact in the dedicated platform cache table.
      * INSERT or UPDATE one row (API_ID, GATEWAY_ENV_UUID, DEPLOYMENT_ID, REVISION_ID, ARTIFACT).
      *
@@ -217,8 +241,10 @@ public class PlatformGatewayArtifactDAO {
             log.error("Cannot save platform artifact - YAML content is required for API: " + apiId);
             throw new APIManagementException("YAML content is required");
         }
-        log.info("Saving platform artifact for API: " + apiId + ", gateway: " + gatewayEnvUuid
-                + ", deployment: " + deploymentId);
+        if (log.isDebugEnabled()) {
+            log.debug("Saving platform artifact for API: " + apiId + ", gateway: " + gatewayEnvUuid
+                    + ", deployment: " + deploymentId);
+        }
         Timestamp now = new Timestamp(System.currentTimeMillis());
         byte[] artifactBytes = yamlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         try (Connection connection = GatewayArtifactsMgtDBUtil.getArtifactSynchronizerConnection()) {

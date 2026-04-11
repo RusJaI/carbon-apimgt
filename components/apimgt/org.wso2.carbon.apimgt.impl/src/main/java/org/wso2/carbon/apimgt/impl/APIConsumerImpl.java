@@ -4193,6 +4193,16 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
     private void revokeApiKey(String keyUUID, String tenantDomain, String username, boolean regeneration)
             throws APIManagementException {
 
+        revokeApiKeyInternal(keyUUID, tenantDomain, username, !regeneration);
+    }
+
+    /**
+     * Revokes a key in the control-plane DB and optionally notifies platform gateways.
+     * Regenerate flows pass {@code broadcastPlatformGatewayRevoke=false} so the gateway only receives
+     * {@code apikey.updated} (delete+update on the same handle was racing and caused "not found for update").
+     */
+    private void revokeApiKeyInternal(String keyUUID, String tenantDomain, String username,
+                                      boolean broadcastPlatformGatewayRevoke) throws APIManagementException {
 
         APIKeyInfo apiKeyInfo = apiKeyMgtDAO.getAPIKey(keyUUID, username);
         if (apiKeyInfo == null || apiKeyInfo.getKeyUUID() == null) {
@@ -4203,12 +4213,17 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                     "User is not authorized to revoke the API key for UUID: " + keyUUID);
         }
         apiKeyMgtDAO.revokeAPIKeyViaUser(keyUUID, username);
-        if (!regeneration) {
+
+        if (broadcastPlatformGatewayRevoke) {
             APIKeyEvent apiKeyEvent =
                     new APIKeyEvent(APIConstants.EventType.API_KEY_DELETE.name(), tenantId, tenantDomain,
                             apiKeyInfo.getApiKeyHash(), apiKeyInfo.getKeyUUID(), apiKeyInfo.getKeyName(),
                             apiKeyInfo.getKeyType());
             APIUtil.sendNotification(apiKeyEvent, APIConstants.NotifierType.API_KEY.name());
+        }
+
+        if (!broadcastPlatformGatewayRevoke) {
+            return;
         }
         // Notify connected platform gateways (platform expects handle = metadata.name, not API UUID)
         PlatformGatewayAPIKeyEventService eventService =
@@ -4217,12 +4232,15 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             try {
                 String keyNameGw = apiKeyInfo.getKeyName().toLowerCase(java.util.Locale.ROOT);
                 if (StringUtils.isNotBlank(apiKeyInfo.getApiUUId())) {
-                    API apiForHandle = getLightweightAPIByUUID(apiKeyInfo.getApiUUId(), tenantDomain);
+                    String organizationForApiLookup =
+                            StringUtils.isNotBlank(this.organization) ? this.organization : tenantDomain;
+                    API apiForHandle =
+                            getLightweightAPIByUUID(apiKeyInfo.getApiUUId(), organizationForApiLookup);
                     String apiIdForRevoke = apiForHandle != null ? apiForHandle.getUUID() : apiKeyInfo.getApiUUId();
                     String organization = resolveOrganizationForPlatformGatewayEvents(null, apiForHandle);
                     if (StringUtils.isNotBlank(organization)) {
-                    eventService.broadcastAPIKeyRevoked(new PlatformGatewayAPIKeyEvents.Revoked(organization, apiIdForRevoke, keyNameGw)
-                                        .withUserId(apiKeyInfo.getAuthUser()));
+                        eventService.broadcastAPIKeyRevoked(new PlatformGatewayAPIKeyEvents.Revoked(organization,
+                                apiIdForRevoke, keyNameGw).withUserId(apiKeyInfo.getAuthUser()));
                     }
                 } else if (StringUtils.isNotBlank(apiKeyInfo.getApplicationId())) {
                     Application app = apiMgtDAO.getApplicationByUUID(apiKeyInfo.getApplicationId());
@@ -4272,10 +4290,9 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             throw new APIMgtAuthorizationFailedException(
                     "API key with UUID: " + keyUUId + " is not of key type: " + keyType);
         }
-        // Revoke the existing key (suppresses individual delete notification; regeneration event covers it)
-        revokeApiKey(keyUUId, tenantDomain, username, true);
-        // If anything fails after revocation the old key is already gone from the DB but gateways
-        // still hold it cached. Emit a compensating API_KEY_DELETE so they invalidate it.
+        // Revoke in DB; suppress API_KEY_DELETE + platform revoke — classic gets API_KEY_REGENERATE,
+        // platform gets apikey.updated after generate (avoids delete/update race on same handle).
+        revokeApiKeyInternal(keyUUId, tenantDomain, username, false);
         Map<String, String> oldProperties =
                 apiKeyInfo.getProperties() != null ? apiKeyInfo.getProperties() : Collections.emptyMap();
         APIKeyDTO apiKeyDTO;
@@ -4520,10 +4537,9 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             throw new APIMgtAuthorizationFailedException(
                     "User is not authorized to regenerate the API key for UUID: " + keyUUId);
         }
-        // Revoke the existing key (suppresses individual delete notification; regeneration event covers it)
-        revokeApiKey(keyUUId, tenantDomain, username, true);
-        // If anything fails after revocation the old key is already gone from the DB but gateways
-        // still hold it cached. Emit a compensating API_KEY_DELETE so they invalidate it.
+        // Revoke in DB; suppress API_KEY_DELETE + platform revoke — classic gets API_KEY_REGENERATE,
+        // platform gets apikey.updated after generate (avoids delete/update race on same handle).
+        revokeApiKeyInternal(keyUUId, tenantDomain, username, false);
         // Generate a new key with the same name and other additional properties
         Map<String, String> properties =
                 apiKeyInfo.getProperties() != null ? apiKeyInfo.getProperties() : Collections.emptyMap();

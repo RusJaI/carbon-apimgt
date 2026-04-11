@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.PlatformGatewayDeploymentEventService;
 import org.wso2.carbon.apimgt.api.model.PlatformGatewayDeploymentEventRecord;
+import org.wso2.carbon.apimgt.impl.dao.PlatformGatewayArtifactDAO;
 import org.wso2.carbon.apimgt.impl.dao.PlatformGatewayDAO;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.internal.service.dto.GatewayDeploymentStatusAcknowledgmentDTO;
@@ -357,7 +358,37 @@ public class GatewayConnectEndpoint {
         acknowledgment.setGatewayId(gateway.id);
         acknowledgment.setApiId(artifactId);
         acknowledgment.setTenantDomain(gateway.organizationId);
-        acknowledgment.setRevisionId(payload.getDeploymentId());
+        String revisionUuid = StringUtils.trimToNull(payload.getRevisionUuid());
+        PlatformGatewayArtifactDAO artifactDao = PlatformGatewayArtifactDAO.getInstance();
+        if (revisionUuid == null && StringUtils.isNotBlank(payload.getDeploymentId())) {
+            try {
+                revisionUuid = StringUtils.trimToNull(artifactDao.getArtifactRevisionIdByGatewayEnvAndDeploymentId(
+                        gateway.id, payload.getDeploymentId().trim()));
+            } catch (APIManagementException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to resolve revision from artifact cache (gateway+deployment) for deployment.ack: "
+                            + "gatewayId=" + gateway.id + ", error=" + e.getMessage());
+                }
+            }
+        }
+        if (revisionUuid == null) {
+            try {
+                revisionUuid = StringUtils.trimToNull(artifactDao.getArtifactRevisionId(artifactId, gateway.id));
+            } catch (APIManagementException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to resolve revision from artifact cache (api+gateway) for deployment.ack: "
+                            + "gatewayId=" + gateway.id + ", error=" + e.getMessage());
+                }
+            }
+        }
+        if (revisionUuid == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Ignoring deployment.ack: could not resolve API revision UUID from artifact cache; "
+                        + "gatewayId=" + gateway.id + ", apiId=" + artifactId);
+            }
+            return null;
+        }
+        acknowledgment.setRevisionId(revisionUuid);
         acknowledgment.setAction(resolveAction(payload.getAction()));
         acknowledgment.setDeploymentStatus(resolveStatus(payload.getStatus()));
         acknowledgment.setTimeStamp(resolveTimestamp(payload));
