@@ -189,6 +189,9 @@ import org.wso2.carbon.apimgt.impl.dto.ThrottleProperties;
 import org.wso2.carbon.apimgt.impl.dto.WorkflowDTO;
 import org.wso2.carbon.apimgt.impl.dto.ai.AIAPIConfigurationsDTO;
 import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.exception.DataLoadingException;
+import org.wso2.carbon.apimgt.impl.importexport.APIImportExportException;
+import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
+import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
 import org.wso2.carbon.apimgt.impl.internal.APIManagerComponent;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.kmclient.ApacheFeignHttpClient;
@@ -256,6 +259,8 @@ import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -265,6 +270,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -332,12 +338,21 @@ import java.text.Normalizer;
 import javax.validation.constraints.NotNull;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import static org.apache.xerces.impl.Constants.DISALLOW_DOCTYPE_DECL_FEATURE;
+import static org.apache.xerces.impl.Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE;
+import static org.apache.xerces.impl.Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE;
+import static org.apache.xerces.impl.Constants.LOAD_EXTERNAL_DTD_FEATURE;
+import static org.apache.xerces.impl.Constants.SAX_FEATURE_PREFIX;
+import static org.apache.xerces.impl.Constants.SECURITY_MANAGER_PROPERTY;
+import static org.apache.xerces.impl.Constants.XERCES_FEATURE_PREFIX;
+import static org.apache.xerces.impl.Constants.XERCES_PROPERTY_PREFIX;
 import static org.wso2.carbon.apimgt.impl.APIConstants.SHA_256;
 import static org.wso2.carbon.apimgt.impl.APIConstants.SWAGGER_DESCRIPTION;
 import static org.wso2.carbon.apimgt.impl.APIConstants.SWAGGER_INFO;
@@ -7733,7 +7748,6 @@ public final class APIUtil {
      */
     public static DocumentBuilderFactory getSecuredDocumentBuilder() {
 
-        org.apache.xerces.impl.Constants Constants = null;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         dbf.setXIncludeAware(false);
@@ -7741,19 +7755,19 @@ public final class APIUtil {
         try {
             // Enable secure processing
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            dbf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
-            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-            dbf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+            dbf.setFeature(XERCES_FEATURE_PREFIX + DISALLOW_DOCTYPE_DECL_FEATURE, true);
+            dbf.setFeature(SAX_FEATURE_PREFIX + EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+            dbf.setFeature(SAX_FEATURE_PREFIX + EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+            dbf.setFeature(XERCES_FEATURE_PREFIX + LOAD_EXTERNAL_DTD_FEATURE, false);
         } catch (ParserConfigurationException e) {
             log.error(
-                    "Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
-                            Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE);
+                    "Failed to load XML Processor Feature " + EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
+                            EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + LOAD_EXTERNAL_DTD_FEATURE);
         }
 
         SecurityManager securityManager = new SecurityManager();
         securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        dbf.setAttribute(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, securityManager);
+        dbf.setAttribute(XERCES_PROPERTY_PREFIX + SECURITY_MANAGER_PROPERTY, securityManager);
 
         return dbf;
     }
@@ -11100,20 +11114,63 @@ public final class APIUtil {
      */
     public static String getCustomBackendSequence(String extractedFolderPath, String customBackendFileName,
                                                   String fileExtension) throws APIManagementException {
-        if (!StringUtils.isEmpty(customBackendFileName) && !customBackendFileName.contains(fileExtension)) {
+        if (!StringUtils.isEmpty(customBackendFileName) && !customBackendFileName.endsWith(fileExtension)) {
             customBackendFileName = customBackendFileName + fileExtension;
         }
-        String fileName = extractedFolderPath + File.separator + customBackendFileName;
-        if (checkFileExistence(fileName)) {
-            try {
-                try (InputStream inputStream = new FileInputStream(fileName)) {
-                    return IOUtils.toString(inputStream);
-                }
-            } catch (IOException ex) {
-                handleException("Error reading Custom Backend " + customBackendFileName);
+
+        try {
+            String safeFileName = Paths.get(customBackendFileName).getFileName().toString();
+            Path targetFile = APIFileUtil.resolveFilePath(extractedFolderPath, safeFileName);
+            String userPath = extractedFolderPath + File.separator + customBackendFileName;
+
+            if (!(checkFileExistence(targetFile.toString()) && targetFile.toString().equals(userPath))) {
+                return null;
             }
+
+            try (InputStream inputStream = Files.newInputStream(targetFile)) {
+                String content = IOUtils.toString(inputStream);
+                if (!validateXMLForSequenceBackend(content)) {
+                    throw new APIManagementException("Invalid XML content in Custom Backend " + safeFileName);
+                }
+                return content;
+            }
+        } catch (IOException e) {
+            handleException("Error reading Custom Backend " + customBackendFileName);
         }
+
         return null;
+    }
+
+    /**
+     * Method is used to write Custom Backend file to the Directory
+     *
+     * @param customBackendFileName Custom Backend file name
+     * @param sequence              Content of the Custom Backend
+     * @param archivePath           Archived path
+     * @throws APIImportExportException Import/Export error if exists
+     * @throws IOException              IO Error when reading/writing to the file
+     */
+    public static void exportCustomBackend(String customBackendFileName, String sequence, String archivePath)
+            throws APIImportExportException, IOException, APIManagementException {
+        if (!StringUtils.isEmpty(customBackendFileName) && !customBackendFileName.endsWith(
+                APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML)) {
+            customBackendFileName = customBackendFileName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION_XML;
+        }
+        try {
+            if (!validateXMLForSequenceBackend(sequence)) {
+                throw new APIImportExportException("Invalid XML content in Custom Backend " + customBackendFileName);
+            }
+            String sequenceDirectory = archivePath + File.separator + ImportExportConstants.CUSTOM_BACKEND_DIRECTORY;
+            String safeFileName = Paths.get(customBackendFileName).getFileName().toString();
+            Path targetFile = APIFileUtil.resolveFilePath(sequenceDirectory, safeFileName);
+            String userPath = sequenceDirectory + File.separator + customBackendFileName;
+            if (targetFile.toString().equals(userPath)) {
+                CommonUtil.writeFile(targetFile.toString(), sequence);
+            }
+        } catch (APIImportExportException | APIManagementException e) {
+            throw new APIManagementException("Error while exporting custom backend sequence " + customBackendFileName,
+                    e);
+        }
     }
 
     /**
@@ -11165,21 +11222,55 @@ public final class APIUtil {
 
         String customBackendContent = null;
         try {
-            if (!StringUtils.isEmpty(sequenceName) && !sequenceName.contains(".xml")) {
+            if (!StringUtils.isEmpty(sequenceName) && !sequenceName.endsWith(fileExtension)) {
                 sequenceName = sequenceName + fileExtension;
             }
-            String fileName = extractedFolderPath + File.separator + sequenceName;
-            if (checkFileExistence(fileName)) {
+            String safeFileName = Paths.get(sequenceName).getFileName().toString();
+            Path targetFile = APIFileUtil.resolveFilePath(extractedFolderPath, safeFileName);
+            if (checkFileExistence(targetFile.toString())) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Found Sequence Backend file " + fileName);
+                    log.debug("Found Sequence Backend file " + targetFile);
                 }
-                customBackendContent = FileUtils.readFileToString(new File(fileName));
+                customBackendContent = FileUtils.readFileToString(targetFile.toFile());
             }
         } catch (IOException e) {
             throw new APIManagementException("Error while reading Custom Backend from path: " + extractedFolderPath, e,
                     ExceptionCodes.ERROR_READING_META_DATA);
         }
         return customBackendContent;
+    }
+
+    /**
+     * This method will validate the given xml content for the syntactical correctness
+     *
+     * @param xmlContent string of xml content
+     * @return true if the xml content is valid, false otherwise
+     * @throws APIManagementException if an error occurs while parsing the xml content
+     */
+    public static boolean validateXMLSchema(String xmlContent) throws APIManagementException {
+        try {
+            DocumentBuilderFactory factory = getSecuredDocumentBuilder();
+            factory.setValidating(false);
+            factory.setNamespaceAware(false);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            builder.parse(new InputSource(new StringReader(xmlContent)));
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            log.error("Error occurred while parsing the provided xml content.", e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * This method will validate the given xml content in sequence backend for the syntactical correctness
+     *
+     * @param xmlContent string of xml content
+     * @return true if the xml content is valid, false otherwise
+     * @throws APIManagementException if an error occurs while parsing the xml content
+     */
+    public static boolean validateXMLForSequenceBackend(String xmlContent) throws APIManagementException {
+        String wrappedXmlContent = "<sequence>" + xmlContent + "</sequence>";
+        return validateXMLSchema(wrappedXmlContent);
     }
 
     /**
