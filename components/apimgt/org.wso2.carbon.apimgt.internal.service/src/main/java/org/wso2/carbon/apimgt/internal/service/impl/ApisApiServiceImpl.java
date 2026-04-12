@@ -308,12 +308,18 @@ public class ApisApiServiceImpl implements ApisApiService {
     }
 
     /**
-     * Extracts a correlation token from the notify request (query {@code deploymentId} or JSON
-     * {@code deploymentId} / {@code revisionId} / {@code revisionUuid}). The value may be an opaque platform
+     * Extracts a correlation token from the notify request. Precedence: JSON {@code revisionUuid}, then query
+     * {@code deploymentId}, then JSON {@code deploymentId} / {@code revisionId}. The value may be an opaque platform
      * deployment id; callers must translate it via {@link #resolvePlatformNotifyCorrelationToRevisionUuid}.
      */
     private static String resolveRevisionUuidForPlatformNotify(String deploymentIdQueryParam,
             Map<String, Object> requestBody) {
+        if (requestBody != null) {
+            String fromBodyUuid = StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionUuid"));
+            if (StringUtils.isNotBlank(fromBodyUuid)) {
+                return fromBodyUuid;
+            }
+        }
         String revisionUuid = StringUtils.trimToEmpty(deploymentIdQueryParam);
         if (StringUtils.isNotBlank(revisionUuid)) {
             return revisionUuid;
@@ -325,11 +331,7 @@ public class ApisApiServiceImpl implements ApisApiService {
         if (StringUtils.isNotBlank(revisionUuid)) {
             return revisionUuid;
         }
-        revisionUuid = StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionId"));
-        if (StringUtils.isNotBlank(revisionUuid)) {
-            return revisionUuid;
-        }
-        return StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionUuid"));
+        return StringUtils.trimToEmpty(stringValueFromBody(requestBody, "revisionId"));
     }
 
     private static String stringValueFromBody(Map<String, Object> body, String key) {

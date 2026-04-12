@@ -694,6 +694,10 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                 try {
                     String apiIdForGateway = StringUtils.isNotBlank(api.getUUID()) ? api.getUUID() : api.getUuid();
                     String resolvedOrganization = resolveOrganizationForPlatformGatewayEvents(null, api);
+                    if (StringUtils.isBlank(resolvedOrganization)) {
+                        resolvedOrganization = StringUtils.isNotBlank(api.getOrganization()) ? api.getOrganization()
+                                : (StringUtils.isNotBlank(this.organization) ? this.organization : tenantDomain);
+                    }
                     if (log.isDebugEnabled()) {
                         log.debug("Broadcasting API-bound opaque API key create to platform gateways for API: "
                                 + apiIdForGateway);

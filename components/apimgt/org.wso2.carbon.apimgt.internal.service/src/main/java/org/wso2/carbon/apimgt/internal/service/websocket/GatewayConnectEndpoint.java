@@ -337,7 +337,8 @@ public class GatewayConnectEndpoint {
     }
 
     private static GatewayDeploymentStatusAcknowledgmentDTO buildDeploymentAcknowledgment(
-            PlatformGatewayDAO.PlatformGateway gateway, PlatformGatewayWebSocketModels.DeploymentAckMessage root) {
+            PlatformGatewayDAO.PlatformGateway gateway, PlatformGatewayWebSocketModels.DeploymentAckMessage root)
+            throws APIManagementException {
         PlatformGatewayWebSocketModels.DeploymentAckPayload payload = root != null ? root.getPayload() : null;
         if (payload == null) {
             log.warn("Ignoring deployment.ack without payload: gatewayId=" + gateway.id);
@@ -361,15 +362,8 @@ public class GatewayConnectEndpoint {
         String revisionUuid = StringUtils.trimToNull(payload.getRevisionUuid());
         PlatformGatewayArtifactDAO artifactDao = PlatformGatewayArtifactDAO.getInstance();
         if (revisionUuid == null && StringUtils.isNotBlank(payload.getDeploymentId())) {
-            try {
-                revisionUuid = StringUtils.trimToNull(artifactDao.getArtifactRevisionIdByGatewayEnvAndDeploymentId(
-                        gateway.id, payload.getDeploymentId().trim()));
-            } catch (APIManagementException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Failed to resolve revision from artifact cache (gateway+deployment) for deployment.ack: "
-                            + "gatewayId=" + gateway.id + ", error=" + e.getMessage());
-                }
-            }
+            revisionUuid = StringUtils.trimToNull(artifactDao.getArtifactRevisionIdByGatewayEnvAndDeploymentId(
+                    gateway.id, payload.getDeploymentId().trim()));
         }
         if (revisionUuid == null) {
             try {
