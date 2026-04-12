@@ -931,7 +931,9 @@ public enum ExceptionCodes implements ErrorHandler {
                                                     "Error occurred while retrieving/persisting deployment status "
                                                             + "acknowledgment"),
     API_DEPLOYMENT_ERROR(902060, "Error while deploying API to Gateway", 207,
-            "Error while deploying API to Gateway. %s");
+            "Error while deploying API to Gateway. %s"),
+    API_KEY_ASSOCIATION_NOT_AVAILABLE(902061, "API key association not available", 404,
+                       "API key association not available for the given application and API.");
     private final long errorCode;
     private final String errorMessage;
     private final int httpStatusCode;

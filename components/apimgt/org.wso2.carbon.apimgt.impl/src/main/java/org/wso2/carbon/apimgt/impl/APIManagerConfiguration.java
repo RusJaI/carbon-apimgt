@@ -3461,6 +3461,91 @@ public class APIManagerConfiguration {
                         Integer.parseInt(batchProcessorQueueSizeElem.getText()));
             }
         }
+        org.apache.axiom.om.OMElement apiKeyNotification = omElement.getFirstChildWithName(
+                new QName(APIConstants.GatewayNotification.API_KEY_NOTIFICATION));
+        if (apiKeyNotification != null) {
+            org.apache.axiom.om.OMElement queueSizeElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.QUEUE_SIZE));
+            if (queueSizeElem != null && StringUtils.isNotBlank(queueSizeElem.getText())) {
+                if (Integer.parseInt(queueSizeElem.getText()) > 0) {
+                    gatewayNotificationConfiguration.getApiKeyConfiguration().setQueueSize(
+                            Integer.parseInt(queueSizeElem.getText()));
+                }
+            }
+
+            org.apache.axiom.om.OMElement batchSizeElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_SIZE));
+            if (batchSizeElem != null && StringUtils.isNotBlank(batchSizeElem.getText())) {
+                if (Integer.parseInt(batchSizeElem.getText()) > 0) {
+                    gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchSize(
+                            Integer.parseInt(batchSizeElem.getText()));
+                }
+            }
+            org.apache.axiom.om.OMElement batchIntervalElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_INTERVAL_MILLIS));
+            if (batchIntervalElem != null && StringUtils.isNotBlank(batchIntervalElem.getText()) &&
+                    Long.parseLong(batchIntervalElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchIntervalMillis(
+                        Long.parseLong(batchIntervalElem.getText()));
+            }
+            org.apache.axiom.om.OMElement maxRetryCountElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.MAX_RETRY_COUNT));
+            if (maxRetryCountElem != null && StringUtils.isNotBlank(maxRetryCountElem.getText()) &&
+                    Integer.parseInt(maxRetryCountElem.getText()) >= 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setMaxRetryCount(
+                        Integer.parseInt(maxRetryCountElem.getText()));
+            }
+            org.apache.axiom.om.OMElement retryDurationElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.RETRY_DURATION));
+            if (retryDurationElem != null && StringUtils.isNotBlank(retryDurationElem.getText()) &&
+                    Long.parseLong(retryDurationElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setRetryDuration(
+                        Long.parseLong(retryDurationElem.getText()));
+            }
+            org.apache.axiom.om.OMElement retryProgressionFactorElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.RETRY_PROGRESSION_FACTOR));
+            if (retryProgressionFactorElem != null && StringUtils.isNotBlank(retryProgressionFactorElem.getText()) &&
+                    Double.parseDouble(retryProgressionFactorElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setRetryProgressionFactor(
+                        Double.parseDouble(retryProgressionFactorElem.getText()));
+            }
+            org.apache.axiom.om.OMElement batchProcessorMinThreadElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_PROCESSOR_MIN_THREAD));
+            if (batchProcessorMinThreadElem != null && StringUtils.isNotBlank(batchProcessorMinThreadElem.getText()) &&
+                    Integer.parseInt(batchProcessorMinThreadElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchProcessorMinThread(
+                        Integer.parseInt(batchProcessorMinThreadElem.getText()));
+            }
+            org.apache.axiom.om.OMElement batchProcessorMaxThreadElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_PROCESSOR_MAX_THREAD));
+            if (batchProcessorMaxThreadElem != null && StringUtils.isNotBlank(batchProcessorMaxThreadElem.getText()) &&
+                    Integer.parseInt(batchProcessorMaxThreadElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchProcessorMaxThread(
+                        Integer.parseInt(batchProcessorMaxThreadElem.getText()));
+            }
+            if (gatewayNotificationConfiguration.getApiKeyConfiguration().getBatchProcessorMaxThread() <
+                    gatewayNotificationConfiguration.getApiKeyConfiguration().getBatchProcessorMinThread()) {
+                log.debug(
+                        "Batch Processor Max Thread value is less than Min Thread value. Hence setting Max Thread" +
+                                " value to Min Thread value.");
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchProcessorMaxThread(
+                        gatewayNotificationConfiguration.getApiKeyConfiguration().getBatchProcessorMinThread());
+            }
+            org.apache.axiom.om.OMElement batchProcessorKeepAliveElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_PROCESSOR_KEEP_ALIVE));
+            if (batchProcessorKeepAliveElem != null && StringUtils.isNotBlank(batchProcessorKeepAliveElem.getText()) &&
+                    Long.parseLong(batchProcessorKeepAliveElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchProcessorKeepAlive(
+                        Long.parseLong(batchProcessorKeepAliveElem.getText()));
+            }
+            org.apache.axiom.om.OMElement batchProcessorQueueSizeElem = apiKeyNotification.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.BATCH_PROCESSOR_QUEUE_SIZE));
+            if (batchProcessorQueueSizeElem != null && StringUtils.isNotBlank(batchProcessorQueueSizeElem.getText()) &&
+                    Integer.parseInt(batchProcessorQueueSizeElem.getText()) > 0) {
+                gatewayNotificationConfiguration.getApiKeyConfiguration().setBatchProcessorQueueSize(
+                        Integer.parseInt(batchProcessorQueueSizeElem.getText()));
+            }
+        }
 
         org.apache.axiom.om.OMElement registrationElem = omElement.getFirstChildWithName(
                 new QName(APIConstants.GatewayNotification.REGISTRATION));

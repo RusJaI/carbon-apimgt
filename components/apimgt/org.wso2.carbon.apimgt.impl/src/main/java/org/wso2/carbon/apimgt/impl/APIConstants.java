@@ -1582,6 +1582,7 @@ public final class APIConstants {
     public static final String ENABLED = "Enabled";
     public static final String DISABLED = "Disabled";
     public static final int API_RESPONSE_CACHE_TIMEOUT = 300;
+    public static final String UTC_TIME_ZONE = "UTC";
 
     public static class ApplicationStatus {
 
@@ -3366,9 +3367,6 @@ public final class APIConstants {
         public static final String TOPIC_CACHE_INVALIDATION = "cacheInvalidation";
         public static final String TOPIC_KEY_MANAGER = "keyManager";
         public static final String TOPIC_NOTIFICATION = "notification";
-        public static final String TOPIC_OPAQUE_API_KEY_INFO = "opaqueAPIKeyInfo";
-        public static final String TOPIC_OPAQUE_API_KEY_ASSOCIATION_INFO = "opaqueAPIKeyAssociationInfo";
-        public static final String TOPIC_API_KEY_USAGE = "apiKeyUsage";
         public static final String TOPIC_ASYNC_WEBHOOKS_DATA = "asyncWebhooksData";
     }
 
@@ -3975,6 +3973,8 @@ public final class APIConstants {
         public static final String CONNECT_DISPLAY_NAME = "DisplayName";
         public static final String CONNECT_DESCRIPTION = "Description";
         public static final String CONNECT_URL = "Url";
+        public static final String API_KEY_NOTIFICATION = "APIKeyNotification";
+        public static final String QUEUE_SIZE = "QueueSize";
 
         public enum GatewayRegistrationResponse {
             NOT_RESPONDED,
