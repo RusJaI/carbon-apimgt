@@ -18242,6 +18242,58 @@ public class ApiMgtDAO {
     }
 
     /**
+     * Persist multiple revoked jwt signatures to database in batch.
+     *
+     * @param revokedJWTList List of revoked JWT data. Each entry is an Object array containing:
+     *                       [0] eventId (String), [1] jwtSignature (String), [2] type (String),
+     *                       [3] expiryTime (Long), [4] tenantId (Integer)
+     * @throws APIManagementException if an error occurs while adding revoked JWT signatures
+     */
+    public void addRevokedJWTSignatures(List<Object[]> revokedJWTList) throws APIManagementException {
+
+        if (revokedJWTList == null || revokedJWTList.isEmpty()) {
+            return;
+        }
+
+        String addJwtSignature = SQLConstants.RevokedJWTConstants.ADD_JWT_SIGNATURE;
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(addJwtSignature)) {
+                for (Object[] revokedJWT : revokedJWTList) {
+                    String eventId = (String) revokedJWT[0];
+                    String jwtSignature = (String) revokedJWT[1];
+                    String type = (String) revokedJWT[2];
+                    Long expiryTime = (Long) revokedJWT[3];
+                    int tenantId = (Integer) revokedJWT[4];
+
+                    if (StringUtils.isEmpty(type)) {
+                        type = APIConstants.DEFAULT;
+                    }
+
+                    ps.setString(1, eventId);
+                    ps.setString(2, jwtSignature);
+                    ps.setLong(3, expiryTime);
+                    ps.setInt(4, tenantId);
+                    ps.setString(5, type);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                conn.commit();
+            } catch (SQLIntegrityConstraintViolationException e) {
+                conn.rollback();
+                handleException("Batch add of revoked JWT signatures failed due to duplicate entries; " +
+                        "transaction rolled back", e);
+            } catch (SQLException e) {
+                conn.rollback();
+                handleException("Error in batch adding revoked jwt signatures to database", e);
+            }
+        } catch (SQLException e) {
+            handleException("Error in adding revoked jwt signatures to database : " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
      * Check revoked Token Identifier exist
      *
      * @param eventId
