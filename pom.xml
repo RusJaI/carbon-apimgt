@@ -2078,7 +2078,7 @@
         <carbon.analytics.common.version>5.4.4</carbon.analytics.common.version>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.11.15</carbon.kernel.version>
+        <carbon.kernel.version>4.11.17</carbon.kernel.version>
         <carbon.kernel.feature.version>${carbon.kernel.version}</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
 
@@ -2088,12 +2088,12 @@
         <carbon.commons.version>4.13.3</carbon.commons.version>
 
         <carbon.registry.version>4.9.8</carbon.registry.version>
-        <carbon.mediation.version>4.8.13</carbon.mediation.version>
+        <carbon.mediation.version>4.8.16</carbon.mediation.version>
 
         <mongodb.driver.version>4.1.0</mongodb.driver.version>
 
         <!-- Carbon Identity versions -->
-        <carbon.identity.version>5.27.17</carbon.identity.version>
+        <carbon.identity.version>5.27.18</carbon.identity.version>
         <carbon.identity.governance.version>1.14.1</carbon.identity.governance.version>
         <carbon.identity-inbound-auth-oauth.version>6.14.12</carbon.identity-inbound-auth-oauth.version>
         <carbon.identity-oauth2-grant-jwt.version>2.2.5</carbon.identity-oauth2-grant-jwt.version>
@@ -2167,7 +2167,7 @@
         <imp.package.version.osgi.framework>[1.6.0, 2.0.0)</imp.package.version.osgi.framework>
 
         <!-- Misc Versions -->
-        <synapse.version>4.1.0-wso2v33</synapse.version>
+        <synapse.version>4.1.0-wso2v40</synapse.version>
         <orbit.version.json>3.0.0.wso2v7</orbit.version.json>
 
         <!-- orbit httpmime versions-->
@@ -2234,7 +2234,7 @@
 
         <!-- apache cxf version -->
         <cxf.version>3.6.10</cxf.version>
-        <carbon.metrics.version>1.3.12</carbon.metrics.version>
+        <carbon.metrics.version>1.3.13</carbon.metrics.version>
         <!-- apache pdfbox version -->
         <event.processor.version>2.4.2</event.processor.version>
         <pdfbox.version>3.0.1</pdfbox.version>
@@ -2254,8 +2254,8 @@
         <fasterxml.jackson.annotations.version>2.21</fasterxml.jackson.annotations.version>
         <jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
         <javax.inject.version>1</javax.inject.version>
-        <carbon.broker.version>3.3.38</carbon.broker.version>
-        <andes.version>3.4.0</andes.version>
+        <carbon.broker.version>3.3.40</carbon.broker.version>
+        <andes.version>3.4.1</andes.version>
         <waffle-jna.version>1.6.wso2v1</waffle-jna.version>
         <version.snake.yaml>2.2</version.snake.yaml>
         <wsdl4j.version>1.6.3.wso2v3</wsdl4j.version>
@@ -2297,7 +2297,7 @@
         <aspectj.version>1.9.7</aspectj.version>
         <everit.version>1.5.0.wso2.v2</everit.version>
         <json.orbit.version>3.0.0.wso2v7</json.orbit.version>
-        <wso2.securevault.version>1.1.17</wso2.securevault.version>
+        <wso2.securevault.version>1.2.0</wso2.securevault.version>
         <com.jayway.jsonpath.version>2.9.0.wso2v1</com.jayway.jsonpath.version>
         <org.wso2.orbit.commons-text.version>1.10.0.wso2v2</org.wso2.orbit.commons-text.version>
         <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
