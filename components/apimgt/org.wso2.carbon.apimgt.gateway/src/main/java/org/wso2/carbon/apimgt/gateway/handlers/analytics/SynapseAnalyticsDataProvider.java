@@ -284,6 +284,10 @@ public class SynapseAnalyticsDataProvider implements AnalyticsDataProvider {
 
         String httpMethod = (String) messageContext.getProperty(APIMgtGatewayConstants.HTTP_METHOD);
         String apiResourceTemplate = (String) messageContext.getProperty(APIConstants.API_ELECTED_RESOURCE);
+        // If path is invalid, the elected resource is not set in the message context.
+        if (apiResourceTemplate == null) {
+            apiResourceTemplate = (String) messageContext.getProperty(APIConstants.REST_SUB_REQUEST_PATH);
+        }
         Operation operation = new Operation();
         operation.setApiMethod(httpMethod);
         if (APIConstants.GRAPHQL_API.equalsIgnoreCase(getApi().getApiType())) {
