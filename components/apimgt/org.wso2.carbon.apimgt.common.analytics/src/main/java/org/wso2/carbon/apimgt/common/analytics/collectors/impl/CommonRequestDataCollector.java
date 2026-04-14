@@ -124,6 +124,10 @@ public abstract class CommonRequestDataCollector extends AbstractRequestDataColl
 
     protected Event maskAnalyticsEvent(Event event, Map<String, String> maskData) {
 
+        if (maskData == null || maskData.isEmpty()) {
+            return event;
+        }
+
         for (Map.Entry<String, String> entry : maskData.entrySet()) {
             Map<String, Object> props = event.getProperties();
             if (props != null) {
