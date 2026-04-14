@@ -81,6 +81,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.axis2.context.MessageContext.TRANSPORT_HEADERS;
+import static org.apache.synapse.rest.RESTConstants.REST_SUB_REQUEST_PATH;
 import static org.wso2.carbon.apimgt.gateway.APIMgtGatewayConstants.API_OBJECT;
 import static org.wso2.carbon.apimgt.gateway.APIMgtGatewayConstants.API_ELECTED_RESOURCE;
 import static org.wso2.carbon.apimgt.gateway.handlers.analytics.Constants.MASK_VALUE;
@@ -286,7 +287,7 @@ public class SynapseAnalyticsDataProvider implements AnalyticsDataProvider {
         String apiResourceTemplate = (String) messageContext.getProperty(APIConstants.API_ELECTED_RESOURCE);
         // If path is invalid, the elected resource is not set in the message context.
         if (apiResourceTemplate == null) {
-            apiResourceTemplate = (String) messageContext.getProperty(APIConstants.REST_SUB_REQUEST_PATH);
+            apiResourceTemplate = (String) messageContext.getProperty(REST_SUB_REQUEST_PATH);
         }
         Operation operation = new Operation();
         operation.setApiMethod(httpMethod);
