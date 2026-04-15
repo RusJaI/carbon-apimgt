@@ -330,8 +330,9 @@ public class ComplianceAPIUtil {
                         artifactType, organization);
                 complianceStatusList.add(complianceStatus);
             } catch (APIMGovernanceException e) {
-                log.debug("Error while fetching compliance status for artifact with id: " + artifactId + " " +
-                        e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while fetching compliance status for artifact with id: " + artifactId, e);
+                }
             }
         }
 
