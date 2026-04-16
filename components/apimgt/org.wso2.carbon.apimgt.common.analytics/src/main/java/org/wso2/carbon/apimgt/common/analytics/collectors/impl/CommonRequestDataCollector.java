@@ -134,7 +134,9 @@ public abstract class CommonRequestDataCollector extends AbstractRequestDataColl
                 Object value = props.get(entry.getKey());
                 if (value != null) {
                     String maskStr = maskAnalyticsData(entry.getValue(), value);
-                    props.replace(entry.getKey(), maskStr);
+                    if (maskStr != null) {
+                        props.replace(entry.getKey(), maskStr);
+                    }
                 }
             }
         }
