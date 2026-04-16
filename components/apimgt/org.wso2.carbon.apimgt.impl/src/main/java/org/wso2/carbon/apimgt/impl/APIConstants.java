@@ -3308,7 +3308,8 @@ public final class APIConstants {
         API_KEY_CREATE,
         API_KEY_ASSOCIATION_CREATE,
         API_KEY_ASSOCIATION_DELETE,
-        API_KEY_REGENERATE, API_KEY_DELETE
+        API_KEY_REGENERATE,
+        API_KEY_DELETE
         
     }
 

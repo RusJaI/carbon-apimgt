@@ -41,6 +41,7 @@ public class APIKeyDTO implements Serializable {
     private String permittedIP;
     private String permittedReferer;
     private String apikeyHash;
+
     public String getKeyId() {
         return keyId;
     }
