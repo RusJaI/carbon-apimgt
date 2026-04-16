@@ -156,8 +156,8 @@ public class OpaqueApiKeyPublisher {
                         usageBatchProcessorExecutor.getQueue().size()));
             }
         } catch (RejectedExecutionException e) {
-            log.error("Failed to submit API key usage batch due to thread pool rejection. Batch size: "
-                    + batchToProcess.size(), e);
+            log.error("Failed to submit API key usage batch due to thread pool rejection. Batch size: " +
+                    batchToProcess.size(), e);
             currentUsageBatch.addAll(batchToProcess);
         }
     }

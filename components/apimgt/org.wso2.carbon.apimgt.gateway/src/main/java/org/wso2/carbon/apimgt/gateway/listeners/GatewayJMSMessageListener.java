@@ -71,15 +71,15 @@ import javax.jms.Topic;
 public class GatewayJMSMessageListener implements MessageListener, JMSConnectionEventListener {
 
     private static final Log log = LogFactory.getLog(GatewayJMSMessageListener.class);
-    private boolean debugEnabled = log.isDebugEnabled();
+    private final boolean debugEnabled = log.isDebugEnabled();
     private boolean refreshOnReconnect = false;
-    private InMemoryAPIDeployer inMemoryApiDeployer = new InMemoryAPIDeployer();
-    private EventHubConfigurationDto eventHubConfigurationDto = ServiceReferenceHolder.getInstance()
+    private final InMemoryAPIDeployer inMemoryApiDeployer = new InMemoryAPIDeployer();
+    private final EventHubConfigurationDto eventHubConfigurationDto = ServiceReferenceHolder.getInstance()
             .getAPIManagerConfiguration().getEventHubConfigurationDto();
-    private GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties = ServiceReferenceHolder
+    private final GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties = ServiceReferenceHolder
             .getInstance().getAPIManagerConfiguration().getGatewayArtifactSynchronizerProperties();
     ExecutorService executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "DeploymentThread"));
-    private static GatewayNotifier gatewayNotifier = GatewayNotifier.getInstance();
+    private static final GatewayNotifier gatewayNotifier = GatewayNotifier.getInstance();
 
     public GatewayJMSMessageListener() {
     }
@@ -565,6 +565,22 @@ public class GatewayJMSMessageListener implements MessageListener, JMSConnection
                 }
                 DataHolder.getInstance().addOpaqueAPIKeyInfo(apiKeyInfo);
             }
+        }else if (EventType.API_KEY_REGENERATE.toString().equals(eventType)){
+            if (log.isDebugEnabled()){
+                log.debug("Processing API key regeneration event. Event type: " + eventType);
+            }
+            APIKeyRegenerationEvent apiKeyRegenerationEvent = new Gson().fromJson(eventJson, APIKeyRegenerationEvent.class);
+            if (!TenantUtils.isTenantAvailable(apiKeyRegenerationEvent.getTenantDomain())) {
+                return;
+            }
+            String oldLookupKey = apiKeyRegenerationEvent.getOldApiKeyHash();
+            String newLookupKey = apiKeyRegenerationEvent.getNewApiKeyHash();
+            APIKeyInfo apiKeyInfo = DataHolder.getInstance().getOpaqueAPIKeyInfo(oldLookupKey);
+            if (apiKeyInfo != null) {
+                apiKeyInfo.setApiKeyHash(newLookupKey);
+            }
+                DataHolder.getInstance().removeOpaqueAPIKeyInfo(oldLookupKey);
+                DataHolder.getInstance().addOpaqueAPIKeyInfo(apiKeyInfo);
         }
     }
 
