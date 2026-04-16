@@ -841,6 +841,8 @@ public enum ExceptionCodes implements ErrorHandler {
 
     ROLE_OF_SCOPE_DOES_NOT_EXIST(903250, "Role does not exist", 404,
             "Role %s does not exist"),
+    FILE_TOO_LARGE(902030, "Content retrieval from URL failed", 400,
+            "Maximum content size exceeded while retrieving content from URL"),
 
     OPERATION_OR_RESOURCE_TYPE_OR_METHOD_NOT_DEFINED(902031,
             "Operation type/http method is not specified for the operation/resource", 400,
