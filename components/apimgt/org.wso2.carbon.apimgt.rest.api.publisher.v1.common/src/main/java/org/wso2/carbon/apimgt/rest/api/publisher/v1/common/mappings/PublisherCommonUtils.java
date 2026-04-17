@@ -49,7 +49,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -3610,11 +3609,11 @@ public class PublisherCommonUtils {
                     schema = IOUtils.toString(sizeLimitedInputStream, StandardCharsets.UTF_8);
                 } catch (FileSizeLimitExceededException ex) {
                     log.error(
-                            "The GraphQL schema obtained from the URL exceeds the maximum allowed size of " + maxFileSizeStr + " MB. Error: ",
-                            ex);
+                            "The GraphQL schema obtained from the URL exceeds the maximum allowed size of "
+                                    + maxFileSizeStr + " MB. Error: ", ex);
                     throw new APIManagementException(
-                            "The GraphQL schema obtained from the URL exceeds the " + "maximum allowed size of " + maxFileSizeStr + " MB.",
-                            ExceptionCodes.FILE_TOO_LARGE);
+                            "The GraphQL schema obtained from the URL exceeds the " + "maximum allowed size of "
+                                    + maxFileSizeStr + " MB.", ExceptionCodes.FILE_TOO_LARGE);
                 }
             } else {
                 if (log.isDebugEnabled()) {
