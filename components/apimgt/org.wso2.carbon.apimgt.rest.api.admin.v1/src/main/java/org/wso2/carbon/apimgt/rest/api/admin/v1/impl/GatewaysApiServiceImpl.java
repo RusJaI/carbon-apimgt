@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
  * without schema changes:
  * <ul>
  *   <li><b>AM_GATEWAY_ENVIRONMENT</b> – one row per platform gateway (UUID=gatewayId, NAME, DISPLAY_NAME,
- *       DESCRIPTION, GATEWAY_TYPE='Universal', CONFIGURATION=JSON with organization, isActive, createdAt,
+ *       DESCRIPTION, GATEWAY_TYPE='APIPlatform', CONFIGURATION=JSON with organization, isActive, createdAt,
  *       updatedAt, properties).</li>
  *   <li><b>AM_GW_VHOST</b> – one row per env (GATEWAY_ENV_ID, HOST, HTTP_PORT, HTTPS_PORT, ...). Host and port
  *       come from parsed vhost URL; updated in {@link #updateDynamicEnvironmentForPlatformGateway} after create.</li>

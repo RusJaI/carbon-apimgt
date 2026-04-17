@@ -5914,7 +5914,7 @@ components:
         status:
           type: string
           readOnly: true
-          description: For platform gateway environments (gatewayType Universal), connection status to the control plane (Active or Inactive).
+          description: For platform gateway environments (gatewayType APIPlatform), connection status to the control plane (Active or Inactive).
           example: Active
           default: Active
           enum:

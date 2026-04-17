@@ -67,7 +67,7 @@ import javax.websocket.server.ServerEndpoint;
  * The gateway must send the registration token in the {@code api-key} HTTP header when opening
  * the WebSocket. The token is verified via {@link PlatformGatewayTokenUtil#verifyToken(String)}.
  * If not found in the database, the token is checked against
- * {@code [[apim.universal_gateway.connect]]} {@code registration_token} (deployment.toml); when
+ * {@code [[apim.platform_gateway.connect]]} {@code registration_token} (deployment.toml); when
  * it matches, a new platform gateway is created and the connection is accepted (e.g. for migrating
  * an existing gateway to a new control plane). On success, the connection is associated with the
  * gateway and the gateway's active status is set to true; on close it is set to false. On
@@ -152,8 +152,8 @@ public class GatewayConnectEndpoint {
         }
 
         if (gateway == null) {
-            // Accept token from [[apim.universal_gateway.connect]] registration_token (create gateway on first connect)
-            log.info("Gateway WebSocket token not in DB; checking [[apim.universal_gateway.connect]] config");
+            // Accept token from [[apim.platform_gateway.connect]] registration_token (create gateway on first connect)
+            log.info("Gateway WebSocket token not in DB; checking [[apim.platform_gateway.connect]] config");
             ConnectGatewayConfig matchedEntry = null;
             PlatformGatewayConnectConfig connectConfig = null;
             try {
@@ -174,13 +174,13 @@ public class GatewayConnectEndpoint {
                             }
                         }
                         if (matchedEntry == null) {
-                            log.info("No [[apim.universal_gateway.connect]] entry matched api-key; check " +
+                            log.info("No [[apim.platform_gateway.connect]] entry matched api-key; check " +
                                     "registration_token in deployment.toml and that api-manager.xml was generated with it");
                         }
                     }
                 } else {
                     log.info("Platform gateway connect config is null; ensure api-manager.xml has " +
-                            "PlatformGatewayConnectConfiguration (from deployment.toml apim.universal_gateway.connect)");
+                            "PlatformGatewayConnectConfiguration (from deployment.toml apim.platform_gateway.connect)");
                 }
             } catch (Exception e) {
                 log.warn("Could not get platform gateway connect config: " + e.getMessage(), e);
@@ -198,7 +198,7 @@ public class GatewayConnectEndpoint {
                     }
                 } else {
                     log.warn("Connect-with-token gateway creation failed; ensure registration_token is " +
-                            "tokenId.plainToken format and url is set in [[apim.universal_gateway.connect]]");
+                            "tokenId.plainToken format and url is set in [[apim.platform_gateway.connect]]");
                 }
             }
             if (gateway == null) {

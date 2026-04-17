@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Config for the Universal Gateway connect feature ([[apim.universal_gateway.connect]]).
+ * Config for the API Platform gateway connect feature ([[apim.platform_gateway.connect]]).
  * Separate from {@link GatewayNotificationConfiguration} so existing notification/heartbeat
  * code is unchanged. Used only by the connect-with-token flow.
  */
@@ -32,7 +32,7 @@ public class PlatformGatewayConnectConfig {
     private List<String> universalGatewayVersions = new ArrayList<>();
 
     /**
-     * Global Universal Gateway versions (e.g. ["0.9.0", "0.11.0"]).
+     * Global API Platform Gateway versions (e.g. ["0.9.0", "0.11.0"]).
      */
     public List<String> getUniversalGatewayVersions() {
         if (universalGatewayVersions == null) {
