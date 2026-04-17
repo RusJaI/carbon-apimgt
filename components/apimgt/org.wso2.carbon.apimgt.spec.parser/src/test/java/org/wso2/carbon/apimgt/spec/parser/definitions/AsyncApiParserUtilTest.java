@@ -36,6 +36,7 @@ import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Test;
+import org.wso2.carbon.apimgt.api.APIConstants;
 import org.wso2.carbon.apimgt.api.APIDefinitionValidationResponse;
 import org.wso2.carbon.apimgt.api.ErrorItem;
 import org.wso2.carbon.apimgt.api.APIManagementException;
@@ -198,8 +199,8 @@ public class AsyncApiParserUtilTest {
         String fileUrl = tmp.toURI().toURL().toString();
         AsyncApiParseOptions options =  new AsyncApiParseOptions();
         options.setPreserveLegacyAsyncApiParser(true);
-        APIDefinitionValidationResponse resp = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(
-                fileUrl, okHttpClient, true, options);
+        APIDefinitionValidationResponse resp = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(fileUrl,
+                okHttpClient, true, options, APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB);
         assertNotNull(resp);
         assertTrue("Validation by URL with 200 status should succeed", resp.isValid());
     }
@@ -278,8 +279,8 @@ public class AsyncApiParserUtilTest {
 
         AsyncApiParseOptions options =  new AsyncApiParseOptions();
         options.setPreserveLegacyAsyncApiParser(true);
-        APIDefinitionValidationResponse resp = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(
-                fileUrl, nonOkHttpClient, true, options);
+        APIDefinitionValidationResponse resp = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(fileUrl,
+                nonOkHttpClient, true, options, APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB);
         assertNotNull(resp);
         assertFalse("Expected validation to fail when HTTP status != 200", resp.isValid());
         // Ensure the known error code for URL not 200 is present in the response error items
