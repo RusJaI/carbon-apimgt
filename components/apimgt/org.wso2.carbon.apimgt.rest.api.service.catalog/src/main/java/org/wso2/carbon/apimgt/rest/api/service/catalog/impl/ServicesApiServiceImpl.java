@@ -541,7 +541,7 @@ public class ServicesApiServiceImpl implements ServicesApiService {
 
     private void validateInputParams(InputStream definitionInputStream, Attachment fileDetail, String inlineContent) {
         boolean isFileSpecified = definitionInputStream != null && fileDetail != null &&
-                fileDetail.getContentDisposition() != null && fileDetail.getContentDisposition().getFilename() != null;
+                fileDetail.getDataHandler() != null && fileDetail.getDataHandler().getName() != null;
         if (inlineContent == null && !isFileSpecified) {
             RestApiUtil.handleBadRequest("Either inline definition or file should be provided", log);
         }
