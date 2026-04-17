@@ -565,7 +565,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
     public String generateApiKey(Application application, String userName, long validityPeriod, String permittedIP,
                                  String permittedReferer, String keyName) throws APIManagementException {
         return generateApiKey(application, userName, validityPeriod, permittedIP, permittedReferer, keyName,
-                null, true).getApiKey();
+                null, true, false).getApiKey();
     }
 
     /**
@@ -582,7 +582,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
      */
     private APIKeyDTO generateApiKey(Application application, String userName, long validityPeriod, String permittedIP,
                                      String permittedReferer, String keyName, Long lastUsedTime,
-                                     boolean broadcastPlatformGatewayCreated)
+                                     boolean broadcastPlatformGatewayCreated, boolean regeneration)
             throws APIManagementException {
 
         String apiKey;
@@ -602,15 +602,17 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         apiKeyInfoDTO.setApiKey(apiKey);
         apiKeyInfoDTO.setApikeyHash(apiKeyHash);
         apiKeyMgtDAO.addAPIKey(apiKeyHash, apiKeyInfoDTO);
-        APIKeyEvent apiKeyEvent =
-                new APIKeyEvent(APIConstants.EventType.API_KEY_CREATE.name(), tenantId, tenantDomain, apiKeyHash,
-                        apiKeyInfoDTO.getKeyId(), apiKeyInfoDTO.getKeyName(), apiKeyInfoDTO.getKeyType(),
-                        apiKeyInfoDTO.getAuthUser(), apiKeyInfoDTO.getApiKeyProperties(),
-                        apiKeyInfoDTO.getCreatedTime(), apiKeyInfoDTO.getValidityPeriod(),
-                        apiKeyInfoDTO.getPermittedIP(), apiKeyInfoDTO.getPermittedReferer(), "ACTIVE", "APPLICATION");
-        apiKeyEvent.setApplicationId(application.getId());
-        apiKeyEvent.setApplicationUUId(application.getUUID());
-        APIUtil.sendNotification(apiKeyEvent, APIConstants.NotifierType.API_KEY.name());
+        if (!regeneration) {
+            APIKeyEvent apiKeyEvent =
+                    new APIKeyEvent(APIConstants.EventType.API_KEY_CREATE.name(), tenantId, tenantDomain, apiKeyHash,
+                            apiKeyInfoDTO.getKeyId(), apiKeyInfoDTO.getKeyName(), apiKeyInfoDTO.getKeyType(),
+                            apiKeyInfoDTO.getAuthUser(), apiKeyInfoDTO.getApiKeyProperties(),
+                            apiKeyInfoDTO.getCreatedTime(), apiKeyInfoDTO.getValidityPeriod(),
+                            apiKeyInfoDTO.getPermittedIP(), apiKeyInfoDTO.getPermittedReferer(), "ACTIVE", "APPLICATION");
+            apiKeyEvent.setApplicationId(application.getId());
+            apiKeyEvent.setApplicationUUId(application.getUUID());
+            APIUtil.sendNotification(apiKeyEvent, APIConstants.NotifierType.API_KEY.name());
+        }
         if (broadcastPlatformGatewayCreated) {
             broadcastApplicationScopedOpaqueApiKeyCreatedToPlatformGateways(application, apiKey, keyName, validityPeriod,
                     apiKeyInfoDTO.getCreatedTime(), userName);
@@ -639,7 +641,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                                     String permittedReferer, String keyName, String keyType)
             throws APIManagementException {
         return generateApiApiKey(api, userName, validityPeriod, permittedIP, permittedReferer, keyName, keyType,
-                null, true).getApiKey();
+                null, true, false).getApiKey();
     }
 
     /**
@@ -657,7 +659,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
      */
     private APIKeyDTO generateApiApiKey(API api, String userName, long validityPeriod, String permittedIP,
                                         String permittedReferer, String keyName, String keyType, Long lastUsedTime,
-                                        boolean broadcastPlatformGatewayCreated)
+                                        boolean broadcastPlatformGatewayCreated, boolean regeneration)
             throws APIManagementException {
 
         if (StringUtils.isBlank(keyName)) {
@@ -677,15 +679,17 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         apiKeyInfoDTO.setApiKey(apiKey);
         apiKeyInfoDTO.setApikeyHash(apiKeyHash);
         apiKeyMgtDAO.addAPIKey(apiKeyHash, apiKeyInfoDTO);
-        APIKeyEvent apiKeyEvent =
-                new APIKeyEvent(APIConstants.EventType.API_KEY_CREATE.name(), tenantId, tenantDomain, apiKeyHash,
-                        apiKeyInfoDTO.getKeyId(), apiKeyInfoDTO.getKeyName(), apiKeyInfoDTO.getKeyType(),
-                        apiKeyInfoDTO.getAuthUser(), apiKeyInfoDTO.getApiKeyProperties(),
-                        apiKeyInfoDTO.getCreatedTime(), apiKeyInfoDTO.getValidityPeriod(),
-                        apiKeyInfoDTO.getPermittedIP(), apiKeyInfoDTO.getPermittedReferer(), "ACTIVE", "API");
-        apiKeyEvent.setApiUUId(api.getUuid());
-        apiKeyEvent.setApiId(api.getId().getId());
-        APIUtil.sendNotification(apiKeyEvent, APIConstants.NotifierType.API_KEY.name());
+        if (!regeneration) {
+            APIKeyEvent apiKeyEvent =
+                    new APIKeyEvent(APIConstants.EventType.API_KEY_CREATE.name(), tenantId, tenantDomain, apiKeyHash,
+                            apiKeyInfoDTO.getKeyId(), apiKeyInfoDTO.getKeyName(), apiKeyInfoDTO.getKeyType(),
+                            apiKeyInfoDTO.getAuthUser(), apiKeyInfoDTO.getApiKeyProperties(),
+                            apiKeyInfoDTO.getCreatedTime(), apiKeyInfoDTO.getValidityPeriod(),
+                            apiKeyInfoDTO.getPermittedIP(), apiKeyInfoDTO.getPermittedReferer(), "ACTIVE", "API");
+            apiKeyEvent.setApiUUId(api.getUuid());
+            apiKeyEvent.setApiId(api.getId().getId());
+            APIUtil.sendNotification(apiKeyEvent, APIConstants.NotifierType.API_KEY.name());
+        }
 
         if (broadcastPlatformGatewayCreated) {
             PlatformGatewayAPIKeyEventService eventService =
@@ -4336,7 +4340,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             apiKeyDTO = generateApiKey(application, username, apiKeyInfo.getValidityPeriod(),
                     oldProperties.get(APIConstants.JwtTokenConstants.PERMITTED_IP),
                     oldProperties.get(APIConstants.JwtTokenConstants.PERMITTED_REFERER), apiKeyInfo.getKeyName(),
-                    apiKeyInfo.getLastUsedTime(), false);
+                    apiKeyInfo.getLastUsedTime(), false, true);
             broadcastApplicationScopedOpaqueApiKeyUpdatedToPlatformGateways(application, apiKeyDTO.getApiKey(),
                     apiKeyInfo.getKeyName(), apiKeyInfo.getValidityPeriod(), apiKeyDTO.getCreatedTime(), username,
                     apiKeyDTO.getKeyId());
@@ -4580,7 +4584,7 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             apiKeyDTO = generateApiApiKey(api, username, apiKeyInfo.getValidityPeriod(),
                     properties.get(APIConstants.JwtTokenConstants.PERMITTED_IP),
                     properties.get(APIConstants.JwtTokenConstants.PERMITTED_REFERER), apiKeyInfo.getKeyName(),
-                    apiKeyInfo.getKeyType(), apiKeyInfo.getLastUsedTime(), false);
+                    apiKeyInfo.getKeyType(), apiKeyInfo.getLastUsedTime(), false, true);
             if (StringUtils.isNotBlank(apiKeyInfo.getApplicationId())) {
                 Application application = getLightweightApplicationByUUID(apiKeyInfo.getApplicationId());
                 if (application != null) {
