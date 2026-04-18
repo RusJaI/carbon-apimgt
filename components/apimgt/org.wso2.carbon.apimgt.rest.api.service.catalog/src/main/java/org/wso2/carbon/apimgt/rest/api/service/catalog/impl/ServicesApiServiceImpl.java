@@ -481,7 +481,8 @@ public class ServicesApiServiceImpl implements ServicesApiService {
                         .getAPIManagerConfiguration().getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT);
                 if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
-                    maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB;
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.
+                            APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB;
                 }
                 // Validate URL
                 validationResponse = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(url, httpClient, true,

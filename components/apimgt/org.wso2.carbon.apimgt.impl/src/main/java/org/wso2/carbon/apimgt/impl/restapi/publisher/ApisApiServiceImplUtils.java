@@ -659,6 +659,10 @@ public class ApisApiServiceImplUtils {
                 String maxContentSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                         .getAPIManagerConfiguration().getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_OAS_FILE_SIZE_LIMIT);
+                if (maxContentSizeStr == null || maxContentSizeStr.trim().isEmpty()) {
+                    maxContentSizeStr = org.wso2.carbon.apimgt.api.
+                            APIConstants.API_PUBLISHER_IMPORT_OAS_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 validationResponse = OASParserUtil.validateAPIDefinitionByURL(url, httpClient, returnContent,
                         parserOptions, maxContentSizeStr);
             } catch (MalformedURLException e) {
