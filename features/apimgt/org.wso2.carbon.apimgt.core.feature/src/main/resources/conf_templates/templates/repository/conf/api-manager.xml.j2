@@ -2098,10 +2098,10 @@
               <ExpireTimeSeconds>{{apim.gateway_notification.cleanup.expiry_time}}</ExpireTimeSeconds>
               <DataRetentionPeriodSeconds>{{apim.gateway_notification.cleanup.data_retention_period}}</DataRetentionPeriodSeconds>
           </GatewayCleanup>
-          {% if apim.universal_gateway.versions is defined and apim.universal_gateway.versions | length > 0 %}
+          {% if apim.platform_gateway.versions is defined and apim.platform_gateway.versions | length > 0 %}
           <PlatformGatewayConnectConfiguration>
               <UniversalGatewayVersions>
-              {% for version in apim.universal_gateway.versions %}
+              {% for version in apim.platform_gateway.versions %}
                   <Version>{{ version }}</Version>
               {% endfor %}
               </UniversalGatewayVersions>

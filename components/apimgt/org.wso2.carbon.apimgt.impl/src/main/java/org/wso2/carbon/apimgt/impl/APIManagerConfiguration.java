@@ -3616,7 +3616,7 @@ public class APIManagerConfiguration {
     }
 
     /**
-     * Universal Gateway metadata config (e.g. supported versions for UI).
+     * API Platform Gateway metadata config (e.g. supported versions for UI).
      */
     public PlatformGatewayConnectConfig getPlatformGatewayConnectConfig() {
         return platformGatewayConnectConfig;

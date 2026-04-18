@@ -3186,7 +3186,7 @@ CREATE TABLE AM_GW_REVISION_DEPLOYMENT (
     FOREIGN KEY (API_ID) REFERENCES AM_API(API_UUID) ON DELETE CASCADE
 );
 
--- Platform gateway metadata is in AM_GATEWAY_ENVIRONMENT (GATEWAY_TYPE='Universal'); tokens reference env UUID.
+-- Platform gateway metadata is in AM_GATEWAY_ENVIRONMENT (GATEWAY_TYPE='APIPlatform'); tokens reference env UUID.
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = object_id(N'[dbo].[AM_GATEWAY_TOKEN]') AND type IN (N'U'))
 CREATE TABLE AM_GATEWAY_TOKEN (
   ID VARCHAR(255) NOT NULL,

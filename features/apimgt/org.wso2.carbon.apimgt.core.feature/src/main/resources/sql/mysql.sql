@@ -2908,7 +2908,7 @@ CREATE TABLE IF NOT EXISTS AM_GW_REVISION_DEPLOYMENT (
     FOREIGN KEY (API_ID) REFERENCES AM_API(API_UUID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Platform Gateway registration: gateway metadata is stored in AM_GATEWAY_ENVIRONMENT (GATEWAY_TYPE='Universal');
+-- Platform Gateway registration: gateway metadata is stored in AM_GATEWAY_ENVIRONMENT (GATEWAY_TYPE='APIPlatform');
 -- Tokens reference the environment UUID.
 CREATE TABLE IF NOT EXISTS AM_GATEWAY_TOKEN (
     ID VARCHAR(255) NOT NULL,

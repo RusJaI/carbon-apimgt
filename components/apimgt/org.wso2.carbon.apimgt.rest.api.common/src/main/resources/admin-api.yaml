@@ -5914,7 +5914,7 @@ components:
         status:
           type: string
           readOnly: true
-          description: For platform gateway environments (gatewayType Universal), connection status to the control plane (Active or Inactive).
+          description: For platform gateway environments (gatewayType APIPlatform), connection status to the control plane (Active or Inactive).
           example: Active
           default: Active
           enum:
@@ -5929,7 +5929,7 @@ components:
         universalGatewayVersions:
           type: array
           readOnly: true
-          description: Universal Gateway versions from config. Set for deploy targets so UI can show version choices in the quick-start guide.
+          description: API Platform Gateway versions from config. Set for deploy targets so UI can show version choices in the quick-start guide.
           items:
             type: string
             example: "1.0.0"
@@ -6755,7 +6755,7 @@ components:
           default: false
         universalGatewayVersions:
           type: array
-          description: Universal Gateway versions for the quick-start guide.
+          description: API Platform Gateway versions for the quick-start guide.
           items:
             type: string
             example: "1.0.0"

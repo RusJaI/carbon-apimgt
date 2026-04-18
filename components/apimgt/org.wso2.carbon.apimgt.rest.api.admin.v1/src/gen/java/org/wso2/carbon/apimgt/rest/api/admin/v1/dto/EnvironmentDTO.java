@@ -355,7 +355,7 @@ return null;
   }
 
   /**
-   * For platform gateway environments (gatewayType Universal), connection status to the control plane (Active or Inactive).
+   * For platform gateway environments (gatewayType APIPlatform), connection status to the control plane (Active or Inactive).
    **/
   public EnvironmentDTO status(StatusEnum status) {
     this.status = status;
@@ -363,7 +363,7 @@ return null;
   }
 
   
-  @ApiModelProperty(example = "Active", value = "For platform gateway environments (gatewayType Universal), connection status to the control plane (Active or Inactive).")
+  @ApiModelProperty(example = "Active", value = "For platform gateway environments (gatewayType APIPlatform), connection status to the control plane (Active or Inactive).")
   @JsonProperty("status")
   public StatusEnum getStatus() {
     return status;

@@ -23,14 +23,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Config for Universal Gateway metadata (e.g. versions advertised to the UI).
+ * Config for API Platform Gateway metadata (e.g. versions advertised to the UI).
  * Separate from {@link GatewayNotificationConfiguration} for notification/heartbeat settings.
  */
 public class PlatformGatewayConnectConfig {
     private List<String> universalGatewayVersions = new ArrayList<>();
 
     /**
-     * Global Universal Gateway versions (e.g. ["0.11.0","1.0.0"]).
+     * Global API Platform Gateway versions (e.g. ["0.11.0","1.0.0"]).
      */
     public List<String> getUniversalGatewayVersions() {
         if (universalGatewayVersions == null) {
