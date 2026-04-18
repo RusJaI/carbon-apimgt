@@ -3529,6 +3529,9 @@ public class PublisherCommonUtils {
             HttpResponse response = httpClient.execute(httpPost);
 
             if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                if (response.getEntity() == null) {
+                    throw new IllegalArgumentException("Response entity is null for the provided URL: " + url);
+                }
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfiguration()
                         .getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT);
@@ -3600,6 +3603,9 @@ public class PublisherCommonUtils {
             HttpGet httpGet = new HttpGet(url);
             HttpResponse response = httpClient.execute(httpGet);
             if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                if (response.getEntity() == null) {
+                    throw new IllegalArgumentException("Response entity is null for the provided URL: " + url);
+                }
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfiguration()
                         .getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT);

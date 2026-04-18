@@ -245,6 +245,9 @@ public class AsyncApiParserUtil {
             HttpGet httpGet = new HttpGet(url);
             HttpResponse response = httpClient.execute(httpGet);
             if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                if (response.getEntity() == null) {
+                    throw new IllegalArgumentException("Response entity is null for the provided URL: " + url);
+                }
                 long maxFileSize = Long.parseLong(maxFileSizeStr) * 1024L * 1024L;
                 try (InputStream responseStream = response.getEntity().getContent();
                         BufferedInputStream bufferedStream = new BufferedInputStream(responseStream, 4096);
