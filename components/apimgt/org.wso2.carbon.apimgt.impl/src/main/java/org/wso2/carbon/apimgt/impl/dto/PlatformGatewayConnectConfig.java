@@ -27,21 +27,21 @@ import java.util.List;
  * Separate from {@link GatewayNotificationConfiguration} for notification/heartbeat settings.
  */
 public class PlatformGatewayConnectConfig {
-    private List<String> universalGatewayVersions = new ArrayList<>();
+    private List<String> platformGatewayVersions = new ArrayList<>();
 
     /**
      * Global API Platform Gateway versions (e.g. ["0.11.0","1.0.0"]).
      */
-    public List<String> getUniversalGatewayVersions() {
-        if (universalGatewayVersions == null) {
-            universalGatewayVersions = new ArrayList<>();
+    public List<String> getPlatformGatewayVersions() {
+        if (platformGatewayVersions == null) {
+            platformGatewayVersions = new ArrayList<>();
         }
-        return Collections.unmodifiableList(universalGatewayVersions);
+        return Collections.unmodifiableList(platformGatewayVersions);
     }
 
-    public void setUniversalGatewayVersions(List<String> universalGatewayVersions) {
-        this.universalGatewayVersions = universalGatewayVersions != null
-                ? new ArrayList<>(universalGatewayVersions)
+    public void setPlatformGatewayVersions(List<String> platformGatewayVersions) {
+        this.platformGatewayVersions = platformGatewayVersions != null
+                ? new ArrayList<>(platformGatewayVersions)
                 : new ArrayList<>();
     }
 }

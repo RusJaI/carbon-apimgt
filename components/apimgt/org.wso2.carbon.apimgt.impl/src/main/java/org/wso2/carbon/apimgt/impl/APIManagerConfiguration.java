@@ -3617,26 +3617,26 @@ public class APIManagerConfiguration {
             }
         }
 
-        // Universal Gateway version metadata for UI quick-start (separate element under gateway notification).
+        // Platform Gateway version metadata for UI quick-start (separate element under gateway notification).
         OMElement pgConnectElem = omElement.getFirstChildWithName(
                 new QName(APIConstants.GatewayNotification.PLATFORM_GATEWAY_CONNECT_CONFIGURATION));
         if (pgConnectElem != null) {
-            List<String> universalGatewayVersions = new ArrayList<>();
-            OMElement universalGatewayVersionsEl = pgConnectElem.getFirstChildWithName(
-                    new QName(APIConstants.GatewayNotification.UNIVERSAL_GATEWAY_VERSIONS));
-            if (universalGatewayVersionsEl != null) {
-                Iterator<?> versionIterator = universalGatewayVersionsEl.getChildrenWithName(
+            List<String> platformGatewayVersions = new ArrayList<>();
+            OMElement platformGatewayVersionsEl = pgConnectElem.getFirstChildWithName(
+                    new QName(APIConstants.GatewayNotification.PLATFORM_GATEWAY_VERSIONS));
+            if (platformGatewayVersionsEl != null) {
+                Iterator<?> versionIterator = platformGatewayVersionsEl.getChildrenWithName(
                         new QName(APIConstants.GatewayNotification.VERSION));
                 while (versionIterator != null && versionIterator.hasNext()) {
                     OMElement versionElement = (OMElement) versionIterator.next();
                     if (versionElement != null && versionElement.getText() != null
                             && !versionElement.getText().trim().isEmpty()) {
-                        universalGatewayVersions.add(versionElement.getText().trim());
+                        platformGatewayVersions.add(versionElement.getText().trim());
                     }
                 }
             }
-            if (!universalGatewayVersions.isEmpty()) {
-                platformGatewayConnectConfig.setUniversalGatewayVersions(universalGatewayVersions);
+            if (!platformGatewayVersions.isEmpty()) {
+                platformGatewayConnectConfig.setPlatformGatewayVersions(platformGatewayVersions);
             }
         }
     }

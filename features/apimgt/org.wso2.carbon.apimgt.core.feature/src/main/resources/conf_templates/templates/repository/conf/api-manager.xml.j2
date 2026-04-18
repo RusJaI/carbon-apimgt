@@ -2119,11 +2119,11 @@
           </GatewayCleanup>
           {% if apim.platform_gateway.versions is defined and apim.platform_gateway.versions | length > 0 %}
           <PlatformGatewayConnectConfiguration>
-              <UniversalGatewayVersions>
+              <PlatformGatewayVersions>
               {% for version in apim.platform_gateway.versions %}
                   <Version>{{ version }}</Version>
               {% endfor %}
-              </UniversalGatewayVersions>
+              </PlatformGatewayVersions>
           </PlatformGatewayConnectConfiguration>
           {% endif %}
           <APIKeyNotification>
