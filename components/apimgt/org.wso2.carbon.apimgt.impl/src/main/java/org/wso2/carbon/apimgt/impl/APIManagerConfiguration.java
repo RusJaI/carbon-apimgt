@@ -3617,7 +3617,7 @@ public class APIManagerConfiguration {
             }
         }
 
-        // Universal Gateway version metadata for UI quick-start (separate element under gateway notification).
+        // Platform Gateway version metadata for UI quick-start (separate element under gateway notification).
         OMElement pgConnectElem = omElement.getFirstChildWithName(
                 new QName(APIConstants.GatewayNotification.PLATFORM_GATEWAY_CONNECT_CONFIGURATION));
         if (pgConnectElem != null) {
