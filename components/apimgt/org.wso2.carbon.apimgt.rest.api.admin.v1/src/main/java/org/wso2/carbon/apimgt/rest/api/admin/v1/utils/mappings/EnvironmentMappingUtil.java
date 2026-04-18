@@ -142,7 +142,7 @@ public class EnvironmentMappingUtil {
     }
 
     /**
-     * Resolve Universal Gateway versions from config.
+     * Resolve Platform Gateway versions from config.
      */
     private static List<String> resolvePlatformGatewayVersions() {
         PlatformGatewayConnectConfig config = ServiceReferenceHolder.getInstance()

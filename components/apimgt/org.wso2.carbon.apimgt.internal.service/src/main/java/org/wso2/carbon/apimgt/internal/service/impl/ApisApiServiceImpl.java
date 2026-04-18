@@ -182,7 +182,7 @@ public class ApisApiServiceImpl implements ApisApiService {
     /**
      * Records platform gateway deployment outcome in AM_GW_REVISION_DEPLOYMENT (same data path as
      * {@link org.wso2.carbon.apimgt.internal.service.impl.NotifyApiDeploymentStatusApiServiceImpl}) so Publisher
-     * deployment stats (liveGatewayCount / deployedGatewayCount) update for Universal gateways.
+     * deployment stats (liveGatewayCount / deployedGatewayCount) update for Platform gateways.
      */
     private Response persistPlatformGatewayDeploymentNotification(String apiId, PlatformGatewayDAO.PlatformGateway gateway,
             String deploymentIdQueryParam, Map<String, Object> requestBody) throws APIManagementException {
