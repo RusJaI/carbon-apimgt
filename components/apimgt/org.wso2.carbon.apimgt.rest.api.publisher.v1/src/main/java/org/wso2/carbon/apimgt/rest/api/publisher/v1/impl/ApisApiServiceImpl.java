@@ -4668,9 +4668,16 @@ public class ApisApiServiceImpl implements ApisApiService {
             try {
                 URL urlObj = new URL(url);
                 HttpClient httpClient = APIUtil.getHttpClient(urlObj.getPort(), urlObj.getProtocol());
+                String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
+                        .getAPIManagerConfiguration().getFirstProperty(
+                                org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT);
+                if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.
+                            APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 // Validate URL
                 validationResponse = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(url, httpClient,
-                        returnContent, AsyncApiParserImplUtil.getParserOptionsFromConfig());
+                        returnContent, AsyncApiParserImplUtil.getParserOptionsFromConfig(), maxFileSizeStr);
             } catch (MalformedURLException e) {
                 throw new APIManagementException("Error while processing the API definition URL", e);
             }
