@@ -109,6 +109,9 @@ public class WSDL20ProcessorImpl extends AbstractWSDLProcessor {
             String maxWSDLSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                     .getAPIManagerConfiguration()
                     .getFirstProperty(APIConstants.API_PUBLISHER_IMPORT_WSDL_FILE_SIZE_LIMIT);
+            if (maxWSDLSizeStr == null || maxWSDLSizeStr.trim().isEmpty()) {
+                maxWSDLSizeStr = APIConstants.API_PUBLISHER_IMPORT_WSDL_FILE_SIZE_LIMIT_DEFAULT_MB;
+            }
             long maxFileSize = Long.parseLong(maxWSDLSizeStr) * 1024L * 1024L;
             Document document = getSecuredParsedDocumentFromURL(url, maxFileSize);
             WSDLSource wsdlSource = getWSDLSourceFromDocument(document, reader);

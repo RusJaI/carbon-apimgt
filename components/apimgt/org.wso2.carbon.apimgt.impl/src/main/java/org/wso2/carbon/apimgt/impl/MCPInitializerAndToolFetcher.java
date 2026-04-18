@@ -179,6 +179,9 @@ public class MCPInitializerAndToolFetcher {
         String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                 .getAPIManagerConfiguration()
                 .getFirstProperty(org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_MCP_FILE_SIZE_LIMIT);
+        if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+            maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_MCP_FILE_SIZE_LIMIT_DEFAULT_MB;
+        }
         final long maxBytes = Long.parseLong(maxFileSizeStr) * 1024L * 1024L;
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {

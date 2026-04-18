@@ -5327,6 +5327,9 @@ public final class APIUtil {
         String maxWSDLSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                 .getAPIManagerConfiguration()
                 .getFirstProperty(org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_WSDL_FILE_SIZE_LIMIT);
+        if (maxWSDLSizeStr == null || maxWSDLSizeStr.trim().isEmpty()) {
+            maxWSDLSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_WSDL_FILE_SIZE_LIMIT_DEFAULT_MB;
+        }
         long maxFileSize = Long.parseLong(maxWSDLSizeStr) * 1024L * 1024L;
         try (BufferedInputStream bufferedStream = new BufferedInputStream(url.openStream(), 4096);
                 SizeLimitedInputStream limitedStream = new SizeLimitedInputStream(bufferedStream, maxFileSize);

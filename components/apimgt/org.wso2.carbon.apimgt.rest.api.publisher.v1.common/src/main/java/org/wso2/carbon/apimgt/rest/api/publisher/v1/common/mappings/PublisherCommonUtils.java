@@ -3535,6 +3535,9 @@ public class PublisherCommonUtils {
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfiguration()
                         .getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT);
+                if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 long maxFileSize = Long.parseLong(maxFileSizeStr) * 1024L * 1024L;
                 try (InputStream responseStream = response.getEntity().getContent();
                         BufferedInputStream bufferedStream = new BufferedInputStream(responseStream, 4096);
@@ -3609,6 +3612,9 @@ public class PublisherCommonUtils {
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfiguration()
                         .getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT);
+                if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_GRAPHQL_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 long maxFileSize = Long.parseLong(maxFileSizeStr) * 1024L * 1024L;
                 try (SizeLimitedInputStream sizeLimitedInputStream = new SizeLimitedInputStream(
                         response.getEntity().getContent(), maxFileSize)) {

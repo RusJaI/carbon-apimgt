@@ -480,6 +480,9 @@ public class ServicesApiServiceImpl implements ServicesApiService {
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                         .getAPIManagerConfiguration().getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT);
+                if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_ASYNC_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 // Validate URL
                 validationResponse = AsyncApiParserUtil.validateAsyncAPISpecificationByURL(url, httpClient, true,
                         AsyncApiParserImplUtil.getParserOptionsFromConfig(), maxFileSizeStr);
@@ -510,6 +513,9 @@ public class ServicesApiServiceImpl implements ServicesApiService {
                 String maxFileSizeStr = ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
                         .getAPIManagerConfiguration().getFirstProperty(
                                 org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_OAS_FILE_SIZE_LIMIT);
+                if (maxFileSizeStr == null || maxFileSizeStr.trim().isEmpty()) {
+                    maxFileSizeStr = org.wso2.carbon.apimgt.api.APIConstants.API_PUBLISHER_IMPORT_OAS_FILE_SIZE_LIMIT_DEFAULT_MB;
+                }
                 validationResponse = OASParserUtil.validateAPIDefinitionByURL(url, httpClient, true, parserOptions,
                         maxFileSizeStr);
             } catch (MalformedURLException e) {
