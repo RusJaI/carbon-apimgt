@@ -2319,7 +2319,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
      * For Platform Gateway APIs, derives apiSecurity from hub policies at both API-level and operation-level.
      * This ensures DevPortal functionalities work correctly by populating apiSecurity from the
      * attached authentication policies.
-     * Maps: api-key-auth → api_key, basic-auth → basic_auth, jwt-auth → oauth2
+     * Maps: api-key-auth → api_key, basic-auth → basic_auth, jwt-auth → oauth2.
+     * For api-key-auth, the policy parameter {@code key} (when {@code in} is header) is copied to
+     * {@link API#getApiKeyHeader()} so Dev Portal try-out matches the hub policy configuration.
      *
      * @param api The API object to process
      */
@@ -2332,6 +2334,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         Set<String> securitySchemes = new LinkedHashSet<>();
         boolean hasApiKeyPolicy = false;
         boolean hasJwtPolicy = false;
+        String apiKeyHeaderFromHubPolicy = null;
 
         // Collect from API-level hub policies
         List<OperationPolicy> apiLevelPolicies = api.getHubPolicies();
@@ -2344,6 +2347,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 collectSecuritySchemeFromPolicy(policyName, securitySchemes);
                 if ("api-key-auth".equalsIgnoreCase(policyName)) {
                     hasApiKeyPolicy = true;
+                    if (apiKeyHeaderFromHubPolicy == null) {
+                        apiKeyHeaderFromHubPolicy = extractApiKeyHeaderNameFromHubPolicy(policy);
+                    }
                 } else if ("jwt-auth".equalsIgnoreCase(policyName)) {
                     hasJwtPolicy = true;
                 }
@@ -2371,6 +2377,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                         collectSecuritySchemeFromPolicy(policyName, securitySchemes);
                         if ("api-key-auth".equalsIgnoreCase(policyName)) {
                             hasApiKeyPolicy = true;
+                            if (apiKeyHeaderFromHubPolicy == null) {
+                                apiKeyHeaderFromHubPolicy = extractApiKeyHeaderNameFromHubPolicy(policy);
+                            }
                         } else if ("jwt-auth".equalsIgnoreCase(policyName)) {
                             hasJwtPolicy = true;
                         }
@@ -2383,8 +2392,12 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (!securitySchemes.isEmpty()) {
             api.setApiSecurity(String.join(",", securitySchemes));
 
-            if (hasApiKeyPolicy && api.getApiKeyHeader() == null) {
-                api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
+            if (hasApiKeyPolicy) {
+                if (apiKeyHeaderFromHubPolicy != null) {
+                    api.setApiKeyHeader(apiKeyHeaderFromHubPolicy);
+                } else if (api.getApiKeyHeader() == null) {
+                    api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
+                }
             }
             if (hasJwtPolicy && api.getAuthorizationHeader() == null) {
                 api.setAuthorizationHeader(APIConstants.AUTHORIZATION_HEADER_DEFAULT);
@@ -2410,6 +2423,29 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         } else if ("jwt-auth".equalsIgnoreCase(policyName)) {
             securitySchemes.add(APIConstants.DEFAULT_API_SECURITY_OAUTH2);
         }
+    }
+
+    /**
+     * Returns the API key header name from an api-key-auth hub policy ({@code key} when {@code in} is header).
+     */
+    private String extractApiKeyHeaderNameFromHubPolicy(OperationPolicy policy) {
+        if (policy == null || !"api-key-auth".equalsIgnoreCase(policy.getPolicyName())) {
+            return null;
+        }
+        Map<String, Object> params = policy.getParameters();
+        if (MapUtils.isEmpty(params)) {
+            return null;
+        }
+        Object inVal = params.get("in");
+        if (inVal != null && "query".equalsIgnoreCase(inVal.toString().trim())) {
+            return null;
+        }
+        Object keyVal = params.get("key");
+        if (keyVal == null) {
+            return null;
+        }
+        String key = keyVal.toString().trim();
+        return StringUtils.isEmpty(key) ? null : key;
     }
 
     @Override
