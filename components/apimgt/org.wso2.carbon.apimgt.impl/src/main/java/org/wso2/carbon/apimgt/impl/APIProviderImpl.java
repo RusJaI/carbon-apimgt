@@ -277,6 +277,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
     private static final Log log = LogFactory.getLog(APIProviderImpl.class);
     private static final Pattern VALID_API_KEY_HEADER_PATTERN =
             Pattern.compile("(^[^~!@#;:%^*()+={}|\\\\<>\"',&$\\s+]*$)");
+    /** Matches jwt-auth policy parameter {@code headerName} (Policy Hub JWT policy v1 YAML). */
+    private static final Pattern VALID_JWT_POLICY_HEADER_NAME_PATTERN =
+            Pattern.compile("^[!#$%&'*+.^_`|~0-9A-Za-z-]+$");
     private static final String ENDPOINT_CONFIG_SEARCH_TYPE_PREFIX = "endpointConfig:";
     private ServiceCatalogDAO serviceCatalogDAO = ServiceCatalogDAO.getInstance();
 
@@ -2324,6 +2327,8 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
      * Maps: api-key-auth → api_key, basic-auth → basic_auth, jwt-auth → oauth2.
      * For api-key-auth, the policy parameter {@code key} (when {@code in} is header) is copied to
      * {@link API#getApiKeyHeader()} so Dev Portal try-out matches the hub policy configuration.
+     * For jwt-auth, the policy parameter {@code headerName} is copied to {@link API#getAuthorizationHeader()}
+     * (same semantics as Publisher Runtime “Authorization Header”).
      *
      * @param api The API object to process
      */
@@ -2337,6 +2342,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         boolean hasHeaderApiKeyPolicy = false;
         boolean hasJwtPolicy = false;
         String apiKeyHeaderFromHubPolicy = null;
+        String authorizationHeaderFromJwtPolicy = null;
 
         // Collect from API-level hub policies
         List<OperationPolicy> apiLevelPolicies = api.getHubPolicies();
@@ -2356,6 +2362,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                     }
                 } else if ("jwt-auth".equalsIgnoreCase(policyName)) {
                     hasJwtPolicy = true;
+                    if (authorizationHeaderFromJwtPolicy == null) {
+                        authorizationHeaderFromJwtPolicy = extractJwtAuthorizationHeaderFromHubPolicy(policy);
+                    }
                 }
             }
         }
@@ -2388,6 +2397,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                             }
                         } else if ("jwt-auth".equalsIgnoreCase(policyName)) {
                             hasJwtPolicy = true;
+                            if (authorizationHeaderFromJwtPolicy == null) {
+                                authorizationHeaderFromJwtPolicy = extractJwtAuthorizationHeaderFromHubPolicy(policy);
+                            }
                         }
                     }
                 }
@@ -2405,8 +2417,12 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                     api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
                 }
             }
-            if (hasJwtPolicy && api.getAuthorizationHeader() == null) {
-                api.setAuthorizationHeader(APIConstants.AUTHORIZATION_HEADER_DEFAULT);
+            if (hasJwtPolicy) {
+                if (authorizationHeaderFromJwtPolicy != null) {
+                    api.setAuthorizationHeader(authorizationHeaderFromJwtPolicy);
+                } else if (api.getAuthorizationHeader() == null) {
+                    api.setAuthorizationHeader(APIConstants.AUTHORIZATION_HEADER_DEFAULT);
+                }
             }
         } else {
             api.setApiSecurity(EmptyApiSecurity);
@@ -2467,6 +2483,28 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             return true;
         }
         return "header".equalsIgnoreCase(params.get("in").toString().trim());
+    }
+
+    /**
+     * Returns the HTTP header name for JWT from a jwt-auth hub policy ({@code headerName}).
+     */
+    private String extractJwtAuthorizationHeaderFromHubPolicy(OperationPolicy policy) {
+        if (policy == null || !"jwt-auth".equalsIgnoreCase(policy.getPolicyName())) {
+            return null;
+        }
+        Map<String, Object> params = policy.getParameters();
+        if (MapUtils.isEmpty(params)) {
+            return null;
+        }
+        Object headerNameVal = params.get("headerName");
+        if (headerNameVal == null) {
+            return null;
+        }
+        String headerName = headerNameVal.toString().trim();
+        if (StringUtils.isEmpty(headerName)) {
+            return null;
+        }
+        return VALID_JWT_POLICY_HEADER_NAME_PATTERN.matcher(headerName).matches() ? headerName : null;
     }
 
     @Override
