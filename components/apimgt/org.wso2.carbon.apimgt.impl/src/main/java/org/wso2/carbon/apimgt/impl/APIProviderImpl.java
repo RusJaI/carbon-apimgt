@@ -275,10 +275,11 @@ import static org.wso2.carbon.apimgt.impl.APIConstants.LC_RETIRE_LC_STATE;
 class APIProviderImpl extends AbstractAPIManager implements APIProvider {
 
     private static final Log log = LogFactory.getLog(APIProviderImpl.class);
-    private static final Pattern VALID_API_KEY_HEADER_PATTERN =
-            Pattern.compile("(^[^~!@#;:%^*()+={}|\\\\<>\"',&$\\s+]*$)");
-    /** Matches jwt-auth policy parameter {@code headerName} (Policy Hub JWT policy v1 YAML). */
-    private static final Pattern VALID_JWT_POLICY_HEADER_NAME_PATTERN =
+    /**
+     * HTTP header field-name token allowlist (RFC 9110 {@code token}); matches Policy Hub patterns for
+     * api-key-auth {@code key} (header mode) and jwt-auth {@code headerName}.
+     */
+    private static final Pattern VALID_HTTP_HEADER_NAME_PATTERN =
             Pattern.compile("^[!#$%&'*+.^_`|~0-9A-Za-z-]+$");
     private static final String ENDPOINT_CONFIG_SEARCH_TYPE_PREFIX = "endpointConfig:";
     private ServiceCatalogDAO serviceCatalogDAO = ServiceCatalogDAO.getInstance();
@@ -2410,19 +2411,15 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (!securitySchemes.isEmpty()) {
             api.setApiSecurity(String.join(",", securitySchemes));
 
-            if (hasHeaderApiKeyPolicy) {
-                if (apiKeyHeaderFromHubPolicy != null) {
-                    api.setApiKeyHeader(apiKeyHeaderFromHubPolicy);
-                } else if (api.getApiKeyHeader() == null) {
-                    api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
-                }
+            if (hasHeaderApiKeyPolicy && apiKeyHeaderFromHubPolicy != null) {
+                api.setApiKeyHeader(apiKeyHeaderFromHubPolicy);
+            } else {
+                api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
             }
-            if (hasJwtPolicy) {
-                if (authorizationHeaderFromJwtPolicy != null) {
-                    api.setAuthorizationHeader(authorizationHeaderFromJwtPolicy);
-                } else if (api.getAuthorizationHeader() == null) {
-                    api.setAuthorizationHeader(APIConstants.AUTHORIZATION_HEADER_DEFAULT);
-                }
+            if (hasJwtPolicy && authorizationHeaderFromJwtPolicy != null) {
+                api.setAuthorizationHeader(authorizationHeaderFromJwtPolicy);
+            } else {
+                api.setAuthorizationHeader(APIConstants.AUTHORIZATION_HEADER_DEFAULT);
             }
         } else {
             api.setApiSecurity(EmptyApiSecurity);
@@ -2466,7 +2463,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (StringUtils.isEmpty(key)) {
             return null;
         }
-        return VALID_API_KEY_HEADER_PATTERN.matcher(key).matches() ? key : null;
+        return VALID_HTTP_HEADER_NAME_PATTERN.matcher(key).matches() ? key : null;
     }
 
     /**
@@ -2504,7 +2501,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (StringUtils.isEmpty(headerName)) {
             return null;
         }
-        return VALID_JWT_POLICY_HEADER_NAME_PATTERN.matcher(headerName).matches() ? headerName : null;
+        return VALID_HTTP_HEADER_NAME_PATTERN.matcher(headerName).matches() ? headerName : null;
     }
 
     @Override
