@@ -2340,6 +2340,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         }
 
         Set<String> securitySchemes = new LinkedHashSet<>();
+        boolean hasAnyApiKeyPolicy = false;
         boolean hasHeaderApiKeyPolicy = false;
         boolean hasJwtPolicy = false;
         String apiKeyHeaderFromHubPolicy = null;
@@ -2355,6 +2356,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 String policyName = policy.getPolicyName();
                 collectSecuritySchemeFromPolicy(policyName, securitySchemes);
                 if ("api-key-auth".equalsIgnoreCase(policyName)) {
+                    hasAnyApiKeyPolicy = true;
                     if (isApiKeyHeaderPolicy(policy)) {
                         hasHeaderApiKeyPolicy = true;
                     }
@@ -2390,6 +2392,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                         String policyName = policy.getPolicyName();
                         collectSecuritySchemeFromPolicy(policyName, securitySchemes);
                         if ("api-key-auth".equalsIgnoreCase(policyName)) {
+                            hasAnyApiKeyPolicy = true;
                             if (isApiKeyHeaderPolicy(policy)) {
                                 hasHeaderApiKeyPolicy = true;
                             }
@@ -2411,8 +2414,15 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (!securitySchemes.isEmpty()) {
             api.setApiSecurity(String.join(",", securitySchemes));
 
-            if (hasHeaderApiKeyPolicy && apiKeyHeaderFromHubPolicy != null) {
-                api.setApiKeyHeader(apiKeyHeaderFromHubPolicy);
+            if (hasHeaderApiKeyPolicy) {
+                if (apiKeyHeaderFromHubPolicy != null) {
+                    api.setApiKeyHeader(apiKeyHeaderFromHubPolicy);
+                } else {
+                    api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
+                }
+            } else if (hasAnyApiKeyPolicy) {
+                // api-key-auth exists only in query mode; no API key header should be advertised.
+                api.setApiKeyHeader(null);
             } else {
                 api.setApiKeyHeader(APIConstants.API_KEY_HEADER_DEFAULT);
             }
